@@ -1,10 +1,15 @@
 name = "ExactPredicates"
 uuid = "429591f6-91af-11e9-00e2-59fbe8cec110"
+description = "Fast and exact geometrical predicates in the Euclidean plane"
+
+licence = "LGPL-3.0-or-later"
 authors = ["Pierre Lairez <pierre@lairez.fr>"]
 version = "0.1.0"
+
 
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 
 [compat]
 julia = "^1.1"
+

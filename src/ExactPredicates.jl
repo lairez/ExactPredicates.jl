@@ -1,3 +1,11 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
+#
+# Contributors:
+#
+#   - Sylvain Pion (author of the CGAL C++ version)
+#   - Pierre Lairez (Julia port)
+
+
 module ExactPredicates
 
 export orient, incircle

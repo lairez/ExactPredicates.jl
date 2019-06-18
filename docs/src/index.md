@@ -8,20 +8,23 @@ They use floating point arithmetic and fallback to slow exact arithmetic when re
 Points in the plane are represented by the `ComplexF64` type.
 
 
-```@docs
-orient(p :: ComplexF64, q :: ComplexF64, r :: ComplexF64)
-```
+## License
+
+The package is released under the LGPLv3 license, or any later version, as required by CGAL's license.
+
+
+## Exported functions
 
 ```@docs
+orient(p :: ComplexF64, q :: ComplexF64, r :: ComplexF64)
+
 orient(p :: Complex, q :: Complex, r :: Complex)
 ```
 
 ```@docs
-    incircle(a :: ComplexF64, b :: ComplexF64, c :: ComplexF64, p :: ComplexF64)
-```
+incircle(a :: ComplexF64, b :: ComplexF64, c :: ComplexF64, p :: ComplexF64)
 
-```@docs
-    incircle(a :: Complex, b :: Complex, c :: Complex, p :: Complex)
+incircle(a :: Complex, b :: Complex, c :: Complex, p :: Complex)
 ```
 
 
