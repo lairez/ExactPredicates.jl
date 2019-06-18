@@ -1,0 +1,12 @@
+name = "ExactPredicates"
+uuid = "429591f6-91af-11e9-00e2-59fbe8cec110"
+authors = ["Pierre Lairez <pierre@lairez.fr>"]
+description = "Fast and exact geometrical predicates in the Euclidean plane"
+licence = "MIT"
+version = "2.0.0"
+
+[deps]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[compat]
+julia = "^1.1"
