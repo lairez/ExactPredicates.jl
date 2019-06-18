@@ -1,0 +1,4 @@
+name = "ExactPredicates"
+uuid = "429591f6-91af-11e9-00e2-59fbe8cec110"
+authors = ["Pierre Lairez <pierre@lairez.fr>"]
+version = "0.1.0"
