@@ -11,6 +11,14 @@ module ExactPredicates
 export orient, incircle
 
 
+global fallbackcounter = 0
+
+function resetfallbackcounter!()
+    global fallbackcounter
+    fallbackcounter = 0
+end
+
+
 function signof(x) :: Int
     if x > zero(x)
         return 1
@@ -47,6 +55,8 @@ Fallback implementation. Rigorous if the arguments support exact arithmetic.
 
 """
 function orient(p :: Complex, q :: Complex, r :: Complex)
+    global fallbackcounter
+    fallbackcounter += 1
     return signof(det(q-p, r-p))
 end
 
@@ -97,6 +107,7 @@ function orient(p :: ComplexF64, q :: ComplexF64, r :: ComplexF64)
         end
     end
 
+    @assert isfinite(p) && isfinite(q) && isfinite(r)
     return orient(exact(p), exact(q), exact(r))
 end
 
@@ -123,6 +134,9 @@ Fallback implementation. Rigorous if the arguments support exact arithmetic.
 
 """
 function incircle(a :: Complex, b :: Complex, c :: Complex, p :: Complex)
+    global fallbackcounter
+    fallbackcounter += 1
+
     a = a - p
     b = b - p
     c = c - p
@@ -197,6 +211,7 @@ function incircle(p :: ComplexF64, q :: ComplexF64, r :: ComplexF64, t :: Comple
         end
     end
 
+    @assert isfinite(p) && isfinite(q) && isfinite(r) && isfinite(t)
     return incircle(exact(p), exact(q), exact(r), exact(t))
 end
 
