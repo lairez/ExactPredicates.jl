@@ -1,13 +1,19 @@
 using Test
 
 using ExactPredicates
-
+import Base: complex
 
 # easy tests
 
+
+ExactPredicates.resetgenericcallcounter!()
+
+@assert ExactPredicates.genericcallcounter == 0
 @test incircle(complex(0), complex(1), 1im, 1//2+im//2) == 1
 @test incircle(complex(0), complex(1), 1im, 1+im) == 0
+@assert ExactPredicates.genericcallcounter == 2
 @test incircle(complex(0.0), complex(1.0), 1.0im, .5+.5im) == 1
+@assert ExactPredicates.genericcallcounter == 2
 
 
 # small pertubations
@@ -37,6 +43,23 @@ for i in 1:10
     fpts = convert(Vector{Complex{Float64}}, pts)
     @assert incircle(fpts...) == 0
 end
+
+
+
+# genericity
+
+struct Point
+    x :: Float64
+    y :: Float64
+end
+
+complex(p :: Point) = complex(p.x, p.y)
+
+ExactPredicates.resetgenericcallcounter!()
+
+@assert ExactPredicates.genericcallcounter == 0
+@assert incircle(Point(0.0, 0.0), Point(1.0, 0.0), Point(0.0, 1.0), Point(.5, .5)) == 1
+@assert ExactPredicates.genericcallcounter == 0
 
 
 

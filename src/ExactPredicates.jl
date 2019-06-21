@@ -8,16 +8,22 @@
 
 module ExactPredicates
 
+import Base: complex
+
 export orient, incircle
 
 
-global fallbackcounter = 0
+global genericcallcounter = 0
 
-function resetfallbackcounter!()
-    global fallbackcounter
-    fallbackcounter = 0
+function resetgenericcallcounter!()
+    global genericcallcounter
+    genericcallcounter = 0
 end
 
+function incgenericcallcounter!()
+    global genericcallcounter
+    genericcallcounter += 1
+end
 
 function signof(x) :: Int
     if x > zero(x)
@@ -46,19 +52,41 @@ function det(u :: Complex, v :: Complex)
 end
 
 
+orient(p, q, r) = orient(complex(p), complex(q), complex(r))
+incircle(a, b, c, p) = incircle(complex(a), complex(b), complex(c), complex(p))
+
 
 """
 
-    orient(p :: Complex, q :: Complex, r :: Complex) -> Int
+    orient(p, q, r) -> Int
 
 Fallback implementation. Rigorous if the arguments support exact arithmetic.
 
 """
 function orient(p :: Complex, q :: Complex, r :: Complex)
-    global fallbackcounter
-    fallbackcounter += 1
-    return signof(det(q-p, r-p))
+    incgenericcallcounter!()
+    return signof(det(complex(q)-complex(p), complex(r)-complex(p)))
 end
+
+
+
+"""
+    incircle(a, b, c, p) -> Int
+
+Fallback implementation. Rigorous if the arguments support exact arithmetic.
+
+"""
+function incircle(a :: Complex, b :: Complex, c :: Complex, p :: Complex)
+    incgenericcallcounter!()
+
+    cp = complex(p)
+    a = complex(a) - complex(p)
+    b = complex(b) - complex(p)
+    c = complex(c) - complex(p)
+    d = abs2(a)*det(b, c)+abs2(b)*det(c, a)+abs2(c)*det(a, b)
+    return signof(d)
+end
+
 
 
 
@@ -112,37 +140,6 @@ function orient(p :: ComplexF64, q :: ComplexF64, r :: ComplexF64)
 end
 
 
-function intriangle(a :: Complex, b :: Complex, c :: Complex, p :: Complex)
-    ab = orient(a, b, p)
-    bc = orient(b, c, p)
-    ca = orient(c, a, p)
-
-    if ab > 0 && bc > 0 && ca > 0
-        return 1
-    elseif ab < 0 || bc < 0 || ca < 0
-        return -1
-    else
-        return 0
-    end
-end
-
-
-"""
-    incircle(a :: Complex, b :: Complex, c :: Complex, p :: Complex) -> Int
-
-Fallback implementation. Rigorous if the arguments support exact arithmetic.
-
-"""
-function incircle(a :: Complex, b :: Complex, c :: Complex, p :: Complex)
-    global fallbackcounter
-    fallbackcounter += 1
-
-    a = a - p
-    b = b - p
-    c = c - p
-    d = abs2(a)*det(b, c)+abs2(b)*det(c, a)+abs2(c)*det(a, b)
-    return signof(d)
-end
 
 
 """
@@ -214,6 +211,8 @@ function incircle(p :: ComplexF64, q :: ComplexF64, r :: ComplexF64, t :: Comple
     @assert isfinite(p) && isfinite(q) && isfinite(r) && isfinite(t)
     return incircle(exact(p), exact(q), exact(r), exact(t))
 end
+
+
 
 end
 
