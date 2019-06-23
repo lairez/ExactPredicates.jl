@@ -10,7 +10,7 @@ module ExactPredicates
 
 import Base: complex
 
-export orient, incircle
+export orient, incircle, acuteangle
 
 
 global genericcallcounter = 0
@@ -54,6 +54,7 @@ end
 
 orient(p, q, r) = orient(complex(p), complex(q), complex(r))
 incircle(a, b, c, p) = incircle(complex(a), complex(b), complex(c), complex(p))
+acuteangle(p, q, r) = acuteangle(complex(p), complex(q), complex(r))
 
 
 """
@@ -68,6 +69,13 @@ function orient(p :: Complex, q :: Complex, r :: Complex)
     return signof(det(complex(q)-complex(p), complex(r)-complex(p)))
 end
 
+
+function acuteangle(p :: Complex, q :: Complex, r :: Complex)
+    pq = q-p
+    pr = r-p
+    pr = complex(-imag(pr), real(pr))
+    return orient(zero(pq), pq, pr)
+end
 
 
 """
