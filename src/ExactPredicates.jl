@@ -52,61 +52,24 @@ function det(u :: Complex, v :: Complex)
 end
 
 
-orient(p, q, r) = orient(complex(p), complex(q), complex(r))
-incircle(a, b, c, p) = incircle(complex(a), complex(b), complex(c), complex(p))
-acuteangle(p, q, r) = acuteangle(complex(p), complex(q), complex(r))
-
 
 """
 
     orient(p, q, r) -> Int
 
-Fallback implementation. Rigorous if the arguments support exact arithmetic.
-
-"""
-function orient(p :: Complex, q :: Complex, r :: Complex)
-    incgenericcallcounter!()
-    return signof(det(complex(q)-complex(p), complex(r)-complex(p)))
-end
-
-
-function acuteangle(p :: Complex, q :: Complex, r :: Complex)
-    pq = q-p
-    pr = r-p
-    pr = complex(-imag(pr), real(pr))
-    return orient(zero(pq), pq, pr)
-end
-
-
-"""
-    incircle(a, b, c, p) -> Int
-
-Fallback implementation. Rigorous if the arguments support exact arithmetic.
-
-"""
-function incircle(a :: Complex, b :: Complex, c :: Complex, p :: Complex)
-    incgenericcallcounter!()
-
-    cp = complex(p)
-    a = complex(a) - complex(p)
-    b = complex(b) - complex(p)
-    c = complex(c) - complex(p)
-    d = abs2(a)*det(b, c)+abs2(b)*det(c, a)+abs2(c)*det(a, b)
-    return signof(d)
-end
-
-
-
-
-"""
-
-    orient(p :: ComplexF64, q :: ComplexF64, r :: ComplexF64) -> Int
-
 Return `1` if `r` is on the left of the oriented line defined by `p` and
 `q`. Return `-1` if `r` is on the right. Return `0` if `r` is on the line or
 if `p == q`.
 
+The result is guaranteed to be correct if `p`, `q` and `r` are `Complex{Float64}` values, or faithfully convertible to `Complex{Float64}` values *via* `complex`.
 """
+orient(p, q, r) = orient(complex(p), complex(q), complex(r))
+
+function orient(p :: Complex, q :: Complex, r :: Complex)
+    incgenericcallcounter!()
+    return signof(det(q-p, r-p))
+end
+
 function orient(p :: ComplexF64, q :: ComplexF64, r :: ComplexF64)
     # port of https://github.com/CGAL/cgal/blob/c68cf8fc4c850f8cd84c6900faa781286a7117ed/Filtered_kernel/include/CGAL/internal/Static_filters/Orientation_2.h
     pqx, pqy = reim(q - p)
@@ -148,11 +111,20 @@ function orient(p :: ComplexF64, q :: ComplexF64, r :: ComplexF64)
 end
 
 
+acuteangle(p, q, r) = acuteangle(complex(p), complex(q), complex(r))
+
+
+function acuteangle(p :: Complex, q :: Complex, r :: Complex)
+    pq = q-p
+    pr = r-p
+    pr = complex(-imag(pr), real(pr))
+    return orient(zero(pq), pq, pr)
+end
 
 
 """
+    incircle(a, b, c, p) -> Int
 
-    incircle(a :: ComplexF64, b :: ComplexF64, c :: ComplexF64, p :: ComplexF64) -> Int
 
 Assume that `a`, `b` and `c` define a counterclockwise triangle.
 Return `1` if `p` is strictly inside the circumcircle of this triangle.
@@ -164,7 +136,21 @@ If `a`, `b` and `c` are collinear, this degenerate to an orientation test.
 
 If two of the four arguments are equal, return `0`.
 
+The result is guaranteed to be correct if `a`, `b`, `c` and `p` are `Complex{Float64}` values, or faithfully convertible to `Complex{Float64}` values *via* `complex`.
 """
+incircle(a, b, c, p) = incircle(complex(a), complex(b), complex(c), complex(p))
+
+function incircle(a :: Complex, b :: Complex, c :: Complex, p :: Complex)
+    incgenericcallcounter!()
+
+    a = a - p
+    b = b - p
+    c = c - p
+    d = abs2(a)*det(b, c)+abs2(b)*det(c, a)+abs2(c)*det(a, b)
+    return signof(d)
+end
+
+
 function incircle(p :: ComplexF64, q :: ComplexF64, r :: ComplexF64, t :: ComplexF64)
     # port of https://github.com/CGAL/cgal/blob/c68cf8fc4c850f8cd84c6900faa781286a7117ed/Filtered_kernel/include/CGAL/internal/Static_filters/Side_of_oriented_circle_2.h
     qpx, qpy = reim(q - p)
