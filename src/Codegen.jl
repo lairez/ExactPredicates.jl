@@ -6,6 +6,7 @@ using StaticArrays
 
 import Base: +, *, -, one, convert, promote_rule
 
+@enum FilterEnum fastfp_flt zerotest_flt accuratefp_flt interval_flt exact_flt nothing_flt
 
 function adddict(a, b)
     d = copy(a)
@@ -129,119 +130,209 @@ function accumulator(f :: Formula)
 end
 
 
-
-function fpfilter(f :: Formula)
-    acc = accumulator(f)
-
+function evalcode(f :: Formula, conv = nothing)
     code = []
     stack = [f]
+    syms = Set{Symbol}()
 
     while !isempty(stack)
         e = pop!(stack)
 
+        if e.id ∈ syms
+            continue
+        end
+
+        s = (e.id)
+
         if e.head == :sym
-            push!(code, Expr(:(=), e.id, e.args[1]))
-        elseif e.head == :ref
-            push!(code, Expr(:ref, e.id, e.args[1].id, e.args[2]))
-            push!(stack, e.args[1])
+            if isnothing(conv)
+                push!(code, Expr(:(=), s, e.args[1]))
+            else
+                push!(code, Expr(:(=), s, conv(e.args[1])))
+            end
         else
-            push!(code, Expr(:(=), e.id, Expr(:call, e.head, (a.id for a in e.args)...)))
-            push!(stack, e.args...)
-        end
-    end
-
-    reverse!(code)
-
-
-    for g in keys(acc.groups)
-        as = [Expr(:call, :abs, v) for v in acc.groups[g]]
-        push!(code, Expr(:(=), g, pop!(as)))
-        for v in as
-            @gensym b
-            push!(code, :( $b = $v))
-            push!(code, :( $g = ($g < $b) ? $b : $g ))
-        end
-        if acc.deg[g] != 1
-            push!(code, Expr(:(=), g, Expr(:call, :^, g, acc.deg[g])))
-        end
-    end
-
-    totdeg = +(values(acc.deg)...)
-
-    @gensym e
-    res = f.id
-
-    quote
-        $(code...)
-        $e = $(acc.error * (1+eps(1.0))^totdeg)*$(Expr(:call, :*, keys(acc.groups)...))
-        if $res < Inf && $e > $(floatmin(Float64))
-            if $res > $e
-                return 1
-            elseif $res < $e
-                return -1
+            if all(a.id ∈ syms for a in e.args)
+                push!(code, Expr(:(=), s, Expr(:call, e.head, ((a.id) for a in e.args)...)))
+            else
+                push!(stack, e, e.args...)
+                continue
             end
         end
+
+        push!(syms, e.id)
     end
 
+    return quote
+        $(code...)
+        $(f.id)
+    end
 end
 
 
+function fpfilter(f :: Formula ; withretcode :: Bool = false)
+    code = []
+
+    @gensym res
+
+    let
+        fpcode = quote
+            $res = $(evalcode(f))
+        end
+        push!(code, fpcode)
+    end
+
+    # Now code contains the computation of the formula, nothing more. We can
+    # reliably determine the sign of the result if its absolute value is larger
+    # than acc.error*scaling. The scaling depends on the homogeneity structure
+    # of the formula.
+
+    # The format of acc.groups is Dict(g1=>[a,b,c,...], g2=>[d,e,f,...], ...),
+    # where a, b, c, ... are input gates (or difference or inpur gates, which
+    # are considered as new input gates). The formula is expected to be
+    # multihomogeneous w.r.t. to each group. The degree of homogeneity w.r.t to
+    # the group g is acc.deg[g]. Therefore, the appropriate scaling is the
+    # product of all λ[g]^acc.deg[g], where λ[g] is the maximum
+    # absolute value of an input in group g.
+
+    # The accurate way of determining if abs(res) >
+    # acc.error*Π λ[g]^acc.deg[g] is to do the computation with fp numbers.
+    # But we can check quickly a sufficient condition just with integer
+    # arithmetic on the exponents.
+
+    # There are two fundamental things to check: that no overflow occured with computing res
+    # and that no underflow occurs when computing acc.error*Π λ[g]^acc.deg[g].
+
+    acc = accumulator(f)
+    totdeg = sum(values(acc.deg))
+
+    @gensym signres
+
+    let
+        # we first try to determine if the absolute value of the result is
+        # bigger than the maximal possible absolute error by looking only at the
+        # exponents.
+
+        emask = Int64(Base.exponent_mask(Float64))
+        mantissabits = Base.Math.significand_bits(Float64)
+        grouplogs = []
+        for (idx, g) in acc.groups
+            @gensym glog
+            push!(grouplogs, glog)
+            alllogs = [:(reinterpret(Int64, $v) & $emask) for v in g]
+            push!(code, :($glog = max($(alllogs...)) >> $mantissabits))
+            # we could probably work without the shift, but it would make it
+            # harder to think about overflows/underflows.
+
+            if acc.deg[idx] != 1
+                push!(code, :($glog *= $(acc.deg[idx])))
+            end
+        end
+
+        errlog = ((reinterpret(Int64, acc.error) & emask) >> mantissabits) -
+            totdeg * ( Int64(Base.exponent_one(Float64)) >> mantissabits ) + totdeg
+
+        @gensym ε
+        @gensym reslog
+        @gensym rawres
+
+        filter = quote
+            $ε :: Int64 = $(Expr(:call, :+, errlog, grouplogs...))
+            $rawres = reinterpret(Int64, $res)
+            $signres = sign($rawres)
+            $reslog = ($rawres & $emask) >> $mantissabits
+
+            if $reslog != $(emask >> mantissabits) && # protect against Inf and Nan
+                $ε ≥ 0 &&                                 # protect against underflow in computation of ε
+                $reslog > $ε                              # main test
+
+                return $signres + $( withretcode ? 256*Int(fastfp_flt) : 0 )
+            end
+        end
+        push!(code, filter)
+    end
 
 
-# function ivfilter(pred :: Predicate{Float64})
-#     code = []
-#     vars = []
-#     for v in pred.vars
-#         nv = gensym()
-#         push!(vars, nv)
-#         push!(code, :($v = $(interval)($nv)))
-#     end
+    let
+        # Quick test is non conclusive. We check if there is a group in which
+        # all the variables are zero, in which case the result is zero.
 
-#     res = gensym()
-#     ret = quote
-#         $(code...)
-#         $res = $(pred.code)
-#         if $res > 0
-#             return 1
-#         elseif $res < 0
-#             return -1
-#         elseif $res == 0
-#             return 0
-#         end
-#     end
-#     return Predicate{Float64}(vars, ret)
-# end
+        filter = quote
+            if $(Expr(:call, :|,
+                      (Expr(:call, :&,
+                            (Expr(:call, :(==), v, 0.0)
+                             for v in g)...)
+                       for g in values(acc.groups))...)
+                 )
+
+                return 0 + $( withretcode ? 256*Int(zerotest_flt) : 0 )
+            end
+        end
+        push!(code, filter)
+    end
 
 
-# function apcomputation(pred :: Predicate{Float64})
-#     vars = []
-#     code = []
+    let
+        # We now go to the finer, more straight forward, test.
 
-#     for v in pred.vars
-#         nv = gensym()
-#         push!(vars, nv)
-#         push!(code, :($v = Rational{BigInt}($nv)))
-#     end
+        groupabs = []
+        for (idx, g) in acc.groups
+            @gensym gabs
+            push!(groupabs, gabs)
+            allabs = [:(abs($v)) for v in g]
+            push!(code, :($gabs = max($(allabs...))))
 
-#     res = gensym()
-#     ret = quote
-#         $(code...)
-#         $res = $(pred.code)
-#         if $res > 0
-#             return 1
-#         elseif $res < 0
-#             return -1
-#         else
-#             return 0
-#         end
-#     end
-#     return Predicate{Float64}(vars, ret)
-# end
+            if acc.deg[idx] != 1
+                push!(code, :($gabs = $gabs^$(acc.deg[idx])))
+            end
+        end
 
+        errabs =  acc.error * (1+eps(1.0))^totdeg
 
-# function fullstack(pred :: Predicate{Float64}, groups :: Vector{Vector{Symbol}})
-#     stack(fpfilter(pred, groups), ivfilter(pred), apcomputation(pred))
-# end
+        @gensym ε
+
+        filter = quote
+            $ε = *($(groupabs...)) * $errabs
+            if !issubnormal($ε) && $ε > 0 && isfinite($res) && abs($res) > $ε
+                return $signres + $( withretcode ? 256*Int(accuratefp_flt) : 0 )
+            end
+        end
+        push!(code, filter)
+    end
+
+    let
+        # We now resort to interval arithmetic It is an interesting filter when
+        # the data is made of exactly representable integers.
+        @gensym ivres
+        filter = quote
+            let $ivres = $(evalcode(f,  s -> :( interval($s) )))
+                if $ivres < 0
+                    return 1 + $( withretcode ? 256*Int(interval_flt) : 0 )
+                elseif $ivres > 0
+                    return -1 + $( withretcode ? 256*Int(interval_flt) : 0 )
+                elseif $ivres == 0
+                    return 0 + $( withretcode ? 256*Int(interval_flt) : 0 )
+                end
+            end
+        end
+        push!(code, filter)
+    end
+
+let
+    # And lastly, exact arithmetic
+    @gensym apres
+    filter = quote
+        let $apres = $(evalcode(f, s -> :( Rational{BigInt}($s) )))
+            return Int(sign($apres)) + $( withretcode ? 256*Int(exact_flt) : 0 )
+        end
+    end
+    push!(code, filter)
+end
+
+return quote
+    $(code...)
+    return 999
+end
 
 end
 
+end

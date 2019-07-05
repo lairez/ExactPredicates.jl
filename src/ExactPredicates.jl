@@ -9,6 +9,7 @@ include("Codegen.jl")
 
 
 using StaticArrays
+using IntervalArithmetic
 
 const R2 = SVector{2}
 const R2f = SVector{2, Codegen.Formula}
@@ -44,9 +45,29 @@ function incirclep(p :: R2f, q :: R2f, r :: R2f, a :: R2f)
     ext(qp, ap)*inp(rp, rq) - ext(qp, rp)*inp(ap, aq)
 end
 
+function incircleref(p :: R2fl, q :: R2fl, r :: R2fl, a :: R2fl)
+    qp = q - p
+    rp = r - p
+    ap = a - p
+    aq = a - q
+    rq = r - q
+
+    res = ext(qp, ap)*inp(rp, rq) - ext(qp, rp)*inp(ap, aq)
+    if res > 0.0
+        return 1
+    elseif res < 0.0
+        return -1
+    else
+        return 0.0
+    end
+end
+
+
+
 @generated function incircle(p :: R2fl, q :: R2fl, r :: R2fl, a :: R2fl)
     input = [SVector(Codegen.Formula(:($v[1])), Codegen.Formula(:($v[2]))) for v in [:p, :q, :r, :a]]
     return Codegen.fpfilter(incirclep(input...))
+    
 end
 
 
