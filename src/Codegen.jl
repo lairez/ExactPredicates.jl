@@ -6,7 +6,8 @@ using StaticArrays
 
 import Base: +, *, -, one, convert, promote_rule
 
-@enum FilterEnum fastfp_flt zerotest_flt accuratefp_flt interval_flt exact_flt nothing_flt
+@enum FilterEnum fastfp_flt zerotest_flt accuratefp_flt interval_flt exact_flt naive_flt nothing_flt
+
 
 function adddict(a, b)
     d = copy(a)
@@ -169,7 +170,7 @@ function evalcode(f :: Formula, conv = nothing)
 end
 
 
-function fpfilter(f :: Formula ; withretcode :: Bool = false)
+function fastfilter(f :: Formula ; withretcode :: Bool = false)
     code = []
 
     @gensym res
@@ -242,8 +243,8 @@ function fpfilter(f :: Formula ; withretcode :: Bool = false)
             $reslog = ($rawres & $emask) >> $mantissabits
 
             if $reslog != $(emask >> mantissabits) && # protect against Inf and Nan
-                $ε ≥ 0 &&                                 # protect against underflow in computation of ε
-                $reslog > $ε                              # main test
+                $ε ≥ 0 &&       # protect against underflow in computation of ε
+                $reslog > $ε    # main test
 
                 return $signres + $( withretcode ? 256*Int(fastfp_flt) : 0 )
             end
@@ -299,40 +300,118 @@ function fpfilter(f :: Formula ; withretcode :: Bool = false)
         push!(code, filter)
     end
 
-    let
+    return quote
+        $(code...)
+    end
+
+end
+
+
+function ivfilter(f :: Formula ; withretcode :: Bool = false)
+
+    @gensym ivres
+    quote
         # We now resort to interval arithmetic It is an interesting filter when
         # the data is made of exactly representable integers.
-        @gensym ivres
-        filter = quote
-            let $ivres = $(evalcode(f,  s -> :( interval($s) )))
-                if $ivres < 0
-                    return 1 + $( withretcode ? 256*Int(interval_flt) : 0 )
-                elseif $ivres > 0
-                    return -1 + $( withretcode ? 256*Int(interval_flt) : 0 )
-                elseif $ivres == 0
-                    return 0 + $( withretcode ? 256*Int(interval_flt) : 0 )
-                end
-            end
-        end
-        push!(code, filter)
-    end
-
-let
-    # And lastly, exact arithmetic
-    @gensym apres
-    filter = quote
-        let $apres = $(evalcode(f, s -> :( Rational{BigInt}($s) )))
-            return Int(sign($apres)) + $( withretcode ? 256*Int(exact_flt) : 0 )
+        $ivres = $(evalcode(f,  s -> :( interval($s) )))
+        if $ivres < 0
+            return -1 + $( withretcode ? 256*Int(interval_flt) : 0 )
+        elseif $ivres > 0
+            return 1 + $( withretcode ? 256*Int(interval_flt) : 0 )
+        elseif $ivres == 0
+            return 0 + $( withretcode ? 256*Int(interval_flt) : 0 )
         end
     end
-    push!(code, filter)
-end
-
-return quote
-    $(code...)
-    return 999
-end
 
 end
+
+function exfilter(f :: Formula ; withretcode :: Bool = false)
+
+    @gensym exrec
+    quote
+        # Exact arithmetic. Always conclusive.
+        $exrec = $(evalcode(f, s -> :( Rational{BigInt}($s) )))
+        return Int(sign($exrec)) + $( withretcode ? 256*Int(exact_flt) : 0 )
+    end
+
+end
+
+function naivefilter(f :: Formula  ; withretcode :: Bool = false)
+    @gensym fpres
+    quote
+        # Exact arithmetic. Always conclusive.
+        $fpres = $(evalcode(f))
+        if $fpres < 0
+            return -1 + $( withretcode ? 256*Int(naive_flt) : 0 )
+        elseif $fpres > 0
+            return 1 + $( withretcode ? 256*Int(naive_flt) : 0 )
+        else
+            return 0 + $( withretcode ? 256*Int(naive_flt) : 0 )
+        end
+    end
+end
+
+
+macro genpredicates(fun)
+    sig = fun.args[1]
+    args = sig.args[2:length(sig.args)]
+
+    @assert fun.head == :function
+
+    nargs = []
+    input = []
+    for a in args
+        if isa(a, Symbol)
+            push!(input, Formula(v))
+        elseif isa(a, Expr) && a.head == :(::)
+            v, dim = a.args
+            push!(input, SVector((Formula(:($v[$i])) for i in 1:dim)...))
+            push!(nargs, :($v :: SVector{$dim, Float64}))
+        else
+            throw(DomainError("Unknown argument $a"))
+        end
+    end
+
+    base = string(sig.args[1])
+    mainf = esc(Symbol(base))
+    slowf = esc(Symbol(base*"_slow"))
+    referencef = esc(Symbol(base*"_reference"))
+    naivef = esc(Symbol(base*"_naive"))
+
+    nsig = (a for a in nargs)
+    vars = (a.args[1] for a in nargs)
+
+    formula = Core.eval(__module__,
+         Expr(:call,
+              Expr(:->, Expr(:tuple, vars...), fun.args[2]),
+              input...))
+
+
+    quote
+        function $(naivef)($(nsig...))
+            $(naivefilter(formula))
+        end
+
+        function $(referencef)($(nsig...))
+            $(exfilter(formula))
+        end
+
+        function $(slowf)($(nsig...))
+            $(ivfilter(formula))
+            return $(referencef)($(vars...))
+        end
+
+        function $(mainf)($(nsig...))
+            $(fastfilter(formula))
+            return 0
+            #return $(slowf)($(vars...))
+        end
+    end
+
+
+end
+
+
+
 
 end
