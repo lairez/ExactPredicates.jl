@@ -151,6 +151,8 @@ function evalcode(f :: Formula, conv = nothing)
             else
                 push!(code, Expr(:(=), s, conv(e.args[1])))
             end
+        elseif e.head == :const
+            push!(code, code, Expr(:(=), s, e.args[1]))
         else
             if all(a.id ∈ syms for a in e.args)
                 push!(code, Expr(:(=), s, Expr(:call, e.head, ((a.id) for a in e.args)...)))
@@ -403,8 +405,7 @@ macro genpredicates(fun)
 
         function $(mainf)($(nsig...))
             $(fastfilter(formula))
-            return 0
-            #return $(slowf)($(vars...))
+            return $(slowf)($(vars...))
         end
     end
 
