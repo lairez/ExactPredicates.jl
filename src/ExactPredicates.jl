@@ -23,6 +23,22 @@ det(a,b,c,d) = a*d-b*c
 det(a,b,c,d,e,f,g,h,i) = a*det(e,f,h,i) - d*det(b,c,h,i) + g*det(b,c,e,f)
 
 
+@inline function det(m1, m5, m9, m13, m2, m6, m10, m14, m3, m7, m11, m15, m4, m8, m12, m16)
+    p34 = m11*m16 - m12*m15
+    p23 = m10*m15 - m11*m14
+    p12 = m9 *m14 - m10*m13
+    p13 = m9 *m15 - m11*m13
+    p14 = m9 *m16 - m12*m13
+    p24 = m10*m16 - m12*m14
+    return (
+          m1*(m6*p34 - m7*p24 + m8*p23)
+        - m2*(m5*p34 - m7*p14 + m8*p13)
+        + m3*(m5*p24 - m6*p14 + m8*p12)
+        - m4*(m5*p23 - m6*p13 + m7*p12)
+    )
+end
+
+
 abs2(u :: SVector) = inp(u, u)
 
 @genpredicates function orient(u :: 2, v :: 2, w :: 2)
@@ -62,7 +78,6 @@ end
 end
 
 
-
 @genpredicates function closestpoint(p :: 2, q :: 2, a :: 2)
     pq = p - q
     pa = p - q
@@ -95,6 +110,17 @@ end
     Codegen.group!(ra...)
 
     det(pa..., qa..., ra...)
+end
+
+@genpredicates function insphere(p :: 3, q :: 3, r :: 3, s :: 3, a :: 3)
+    p = p - a
+    q = q - a
+    r = r - a
+    s = s - a
+
+    Codegen.group!(p..., q..., r..., s...)
+
+    det(p..., abs2(p), q..., abs2(q), r..., abs2(r), s..., abs2(s))
 end
 
 
