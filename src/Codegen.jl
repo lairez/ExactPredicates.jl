@@ -355,7 +355,12 @@ function naivefilter(f :: Formula  ; withretcode :: Bool = false)
     end
 end
 
+"""
 
+Generate sign predicate for a function that compute a polynomial in the
+coordinates of the arguments.
+
+"""
 macro genpredicates(args...)
     if first(args) == :nogeneric
         defgeneric = false
@@ -379,8 +384,8 @@ macro genpredicates(args...)
         elseif isa(a, Expr) && a.head == :(::)
             v, dim = a.args
             push!(input, SVector((Formula(:($v[$i])) for i in 1:dim)...))
-            push!(nargs, :($v :: SVector{$dim, Float64}))
-            push!(tupleconv, :($v = SVector(coord($v))))
+            push!(nargs, :($v :: NTuple{$dim, Float64}))
+            push!(tupleconv, :($v = coord($v)))
         else
             throw(DomainError("Unknown argument $a"))
         end
@@ -441,12 +446,12 @@ macro genpredicates(args...)
             return $(debug(referencef))($(vars...))
         end
 
-        function $(mainf)($(nsig...))
+        Base.@__doc__ @inline function $(mainf)($(nsig...))
             $(fastfilter(formula))
             return $(slowf)($(vars...))
         end
 
-        @inline function $(debug(mainf))($(nsig...))
+        function $(debug(mainf))($(nsig...))
             $(fastfilter(formula, withretcode=true))
             return $(debug(slowf))($(vars...))
         end
