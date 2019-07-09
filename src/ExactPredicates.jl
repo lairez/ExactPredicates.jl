@@ -3,7 +3,7 @@
 
 module ExactPredicates
 
-export incircle, orient, closestpoint
+export incircle, orient, closestpoint, insphere
 
 include("Codegen.jl")
 
@@ -42,13 +42,13 @@ end
 abs2(u :: SVector) = inp(u, u)
 
 @genpredicates function orient(u :: 2, v :: 2, w :: 2)
-    uw = u - w
-    vw = v - w
+    u = u - w
+    v = v - w
 
-    Codegen.group!(uw[1], vw[1])
-    Codegen.group!(uw[1], vw[1])
+    Codegen.group!(u[1], v[1])
+    Codegen.group!(u[2], v[2])
 
-    ext(uw, vw)
+    ext(u, v)
 end
 
 @genpredicates function incircle(p :: 2, q :: 2, r :: 2, a :: 2)

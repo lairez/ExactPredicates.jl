@@ -100,14 +100,9 @@ function accumulator(f :: Formula)
         ag = accumulator(f.args[2])
         @assert af.deg == ag.deg
 
-        #if f.head == :- && f.args[1].head == f.args[2].head == :sym
-        #    k = first(keys(af.groups))
-        #    return (deg = af.deg, groups = Dict(k => [f.id]), bound = 1.0, error = eps(1.0)/2)
-        #else
         bound = nextfloat(af.bound + ag.bound)
         error = nextfloat(nextfloat(af.error + ag.error) + eps(bound)/2)
         ret = (deg = af.deg, groups = mergedict(af.groups, ag.groups), bound = bound, error = error)
-        #end
     elseif f.head == :*
         af = accumulator(f.args[1])
         ag = accumulator(f.args[2])
@@ -248,7 +243,7 @@ function fastfilter(f :: Formula ; withretcode :: Bool = false)
                 $ε ≥ 0 &&       # protect against underflow in computation of ε
                 $reslog > $ε    # main test
 
-                return $signres + $( withretcode ? 256*Int(fastfp_flt) : 0 )
+                $(withretcode ? :(return ($signres, $fastfp_flt)) : :(return $signres))
             end
         end
         push!(code, filter)
@@ -267,7 +262,7 @@ function fastfilter(f :: Formula ; withretcode :: Bool = false)
                        for g in values(acc.groups))...)
                  )
 
-                return 0 + $( withretcode ? 256*Int(zerotest_flt) : 0 )
+                $(withretcode ? :(return (0, $zerotest_flt)) : :(return 0))
             end
         end
         push!(code, filter)
@@ -296,7 +291,7 @@ function fastfilter(f :: Formula ; withretcode :: Bool = false)
         filter = quote
             $ε = *($(groupabs...)) * $errabs
             if !issubnormal($ε) && $ε > 0 && isfinite($res) && abs($res) > $ε
-                return $signres + $( withretcode ? 256*Int(accuratefp_flt) : 0 )
+                $(withretcode ? :(return ($signres, $accuratefp_flt)) : :(return $signres))
             end
         end
         push!(code, filter)
@@ -317,11 +312,11 @@ function ivfilter(f :: Formula ; withretcode :: Bool = false)
         # the data is made of exactly representable integers.
         $ivres = $(evalcode(f,  s -> :( interval($s) )))
         if $ivres < 0
-            return -1 + $( withretcode ? 256*Int(interval_flt) : 0 )
+            $(withretcode ? :(return (-1, $interval_flt)) : :(return -1))
         elseif $ivres > 0
-            return 1 + $( withretcode ? 256*Int(interval_flt) : 0 )
+            $(withretcode ? :(return (1, $interval_flt)) : :(return 1))
         elseif $ivres == 0
-            return 0 + $( withretcode ? 256*Int(interval_flt) : 0 )
+            $(withretcode ? :(return (0, $interval_flt)) : :(return 0))
         end
     end
 
@@ -333,7 +328,7 @@ function exfilter(f :: Formula ; withretcode :: Bool = false)
     quote
         # Exact arithmetic. Always conclusive.
         $exrec = $(evalcode(f, s -> :( Rational{BigInt}($s) )))
-        return Int(sign($exrec)) + $( withretcode ? 256*Int(exact_flt) : 0 )
+        $(withretcode ? :(return (Int(sign($exrec)), $exact_flt)) : :(return Int(sign($exrec))))
     end
 
 end
@@ -344,11 +339,11 @@ function naivefilter(f :: Formula  ; withretcode :: Bool = false)
         # Exact arithmetic. Always conclusive.
         $fpres = $(evalcode(f))
         if $fpres < 0
-            return -1 + $( withretcode ? 256*Int(naive_flt) : 0 )
+            $(withretcode ? :(return (-1, $naive_flt)) : :(return -1))
         elseif $fpres > 0
-            return 1 + $( withretcode ? 256*Int(naive_flt) : 0 )
+            $(withretcode ? :(return (1, $naive_flt)) : :(return 1))
         else
-            return 0 + $( withretcode ? 256*Int(naive_flt) : 0 )
+            $(withretcode ? :(return (0, $naive_flt)) : :(return 0))
         end
     end
 end
@@ -394,8 +389,16 @@ macro genpredicates(fun)
             $(naivefilter(formula))
         end
 
+        function $(naivef)($(nsig...), :: Val{true})
+            $(naivefilter(formula, withretcode=true))
+        end
+
         function $(referencef)($(nsig...))
             $(exfilter(formula))
+        end
+
+        function $(referencef)($(nsig...), :: Val{true})
+            $(exfilter(formula, withretcode=true))
         end
 
         function $(slowf)($(nsig...))
@@ -403,9 +406,20 @@ macro genpredicates(fun)
             return $(referencef)($(vars...))
         end
 
+
+        function $(slowf)($(nsig...), :: Val{true})
+            $(ivfilter(formula, withretcode=true))
+            return $(referencef)($(vars...), Val(true))
+        end
+
         function $(mainf)($(nsig...))
             $(fastfilter(formula))
             return $(slowf)($(vars...))
+        end
+
+        function $(mainf)($(nsig...), :: Val{true})
+            $(fastfilter(formula, withretcode=true))
+            return $(slowf)($(vars...), Val(true))
         end
     end
 
