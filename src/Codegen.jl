@@ -8,7 +8,7 @@ using StaticArrays
 
 import Base: +, *, -, one, convert, promote_rule
 
-export coord, @genpredicates
+export coord, @genpredicate
 
 @enum FilterEnum fastfp_flt zerotest_flt accuratefp_flt interval_flt exact_flt naive_flt nothing_flt
 
@@ -361,7 +361,7 @@ Generate sign predicate for a function that compute a polynomial in the
 coordinates of the arguments.
 
 """
-macro genpredicates(args...)
+macro genpredicate(args...)
     if first(args) == :nogeneric
         defgeneric = false
         fun = args[2]
@@ -380,7 +380,8 @@ macro genpredicates(args...)
     input = []
     for a in args
         if isa(a, Symbol)
-            push!(input, Formula(v))
+            push!(input, Formula(a))
+            push!(nargs, :($a :: Float64))
         elseif isa(a, Expr) && a.head == :(::)
             v, dim = a.args
             push!(input, SVector((Formula(:($v[$i])) for i in 1:dim)...))

@@ -7,7 +7,7 @@ import Base: complex
 
 import ExactPredicates: incircle_dbg, orient_dbg
 
-p2(x, y=0.0) = SVector(float(x), float(y))
+p2(x, y=0.0) = (float(x), float(y))
 
 @testset "easy" begin
     @test incircle(p2(0), p2(1), p2(0,1), p2(1/2,1/2)) == 1
@@ -51,7 +51,7 @@ end
         rpts = rand(1:2^26, 4)
         pts = (rand(1:2^26) + rand(1:2^26)*im)*rpts
         fpts = convert(Vector{Complex{Float64}}, pts)
-        @test incircle_dbg(reinterpret(SVector{2, Float64}, fpts)...) == (0, Codegen.exact_flt)
+        @test incircle_dbg(reinterpret(NTuple{2, Float64}, fpts)...) == (0, Codegen.exact_flt)
     end
 end
 
