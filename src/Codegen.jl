@@ -8,8 +8,13 @@ using StaticArrays
 
 import Base: +, *, -, one, convert, promote_rule
 
+export coord, @genpredicates
+
 @enum FilterEnum fastfp_flt zerotest_flt accuratefp_flt interval_flt exact_flt naive_flt nothing_flt
 
+
+coord(x) = Tuple(x)
+coord(x :: Complex) = reim(x)
 
 function adddict(a, b)
     d = copy(a)
@@ -351,13 +356,22 @@ function naivefilter(f :: Formula  ; withretcode :: Bool = false)
 end
 
 
-macro genpredicates(fun)
+macro genpredicates(args...)
+    if first(args) == :nogeneric
+        defgeneric = false
+        fun = args[2]
+    else
+        defgeneric = true
+        fun = args[1]
+    end
+
     sig = fun.args[1]
     args = sig.args[2:length(sig.args)]
 
     @assert fun.head == :function
 
     nargs = []
+    tupleconv = []
     input = []
     for a in args
         if isa(a, Symbol)
@@ -366,6 +380,7 @@ macro genpredicates(fun)
             v, dim = a.args
             push!(input, SVector((Formula(:($v[$i])) for i in 1:dim)...))
             push!(nargs, :($v :: SVector{$dim, Float64}))
+            push!(tupleconv, :($v = SVector(coord($v))))
         else
             throw(DomainError("Unknown argument $a"))
         end
@@ -373,9 +388,11 @@ macro genpredicates(fun)
 
     base = string(sig.args[1])
     mainf = esc(Symbol(base))
-    slowf = esc(Symbol(base*"_slow"))
-    referencef = esc(Symbol(base*"_reference"))
-    naivef = esc(Symbol(base*"_naive"))
+    slowf = esc(Symbol(base, "_slow"))
+    referencef = esc(Symbol(base, "_reference"))
+    naivef = esc(Symbol(base, "_naive"))
+
+    debug = s -> esc(Symbol(s.args[1], "_dbg"))
 
     nsig = (a for a in nargs)
     vars = (a.args[1] for a in nargs)
@@ -385,13 +402,24 @@ macro genpredicates(fun)
               Expr(:->, Expr(:tuple, vars...), fun.args[2]),
               input...))
 
+    if defgeneric
+        genfun = quote
+            function $(mainf)($(vars...))
+                $(tupleconv...)
+                return $(mainf)($(vars...))
+            end
+        end
+    else
+        genfun = quote end
+    end
+
 
     quote
         function $(naivef)($(nsig...))
             $(naivefilter(formula))
         end
 
-        function $(naivef)($(nsig...), :: Val{true})
+        function $(debug(naivef))($(nsig...))
             $(naivefilter(formula, withretcode=true))
         end
 
@@ -399,7 +427,7 @@ macro genpredicates(fun)
             $(exfilter(formula))
         end
 
-        function $(referencef)($(nsig...), :: Val{true})
+        function $(debug(referencef))($(nsig...))
             $(exfilter(formula, withretcode=true))
         end
 
@@ -408,10 +436,9 @@ macro genpredicates(fun)
             return $(referencef)($(vars...))
         end
 
-
-        function $(slowf)($(nsig...), :: Val{true})
+        function $(debug(slowf))($(nsig...))
             $(ivfilter(formula, withretcode=true))
-            return $(referencef)($(vars...), Val(true))
+            return $(debug(referencef))($(vars...))
         end
 
         function $(mainf)($(nsig...))
@@ -419,11 +446,16 @@ macro genpredicates(fun)
             return $(slowf)($(vars...))
         end
 
-        function $(mainf)($(nsig...), :: Val{true})
+        @inline function $(debug(mainf))($(nsig...))
             $(fastfilter(formula, withretcode=true))
-            return $(slowf)($(vars...), Val(true))
+            return $(debug(slowf))($(vars...))
         end
+
+        $(genfun)
+
     end
+
+
 
 
 end

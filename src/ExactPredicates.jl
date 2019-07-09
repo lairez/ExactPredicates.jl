@@ -10,7 +10,10 @@ include("Codegen.jl")
 using StaticArrays
 using IntervalArithmetic
 
-using .Codegen: @genpredicates
+using .Codegen
+import .Codegen: coord
+
+export coord
 
 const R2 = SVector{2}
 const R3 = SVector{3}
@@ -89,7 +92,7 @@ end
     inp(pq, pa+qa)
 end
 
-@genpredicates function closestpoint(p :: 3, q :: 3, a :: 3)
+@genpredicates nogeneric function closestpoint(p :: 3, q :: 3, a :: 3)
     pq = p - q
     pa = p - q
     qa = q - a
