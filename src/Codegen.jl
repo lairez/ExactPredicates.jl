@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+# Author: Pierre Lairez
 
 module Codegen
 
