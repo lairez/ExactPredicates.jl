@@ -1,56 +1,70 @@
 # ExactPredicates.jl
 
-This package provides two important predicates for geometry in the Euclidean plane: `orient` and `incircle`.
+This package provides fast and robust predicates for Euclidean geometry, including `orient`, `incircle` and `insphere`.
 
-This package provides two important predicates for geometry in the Euclidean plane: `orient` and `incircle`.
 
-They are ports in Julia of the [CGAL](https://www.cgal.org/) C++ predicates, implemented by Sylvain Pion.
-They use floating point arithmetic and fallback to slow exact arithmetic when required. The algorithm has been proved robust and correct in a formal proof system by Guillaume Melquiond and Sylvain Pion ([“Formal certification of arithmetic filters for geometric predicates”](https://hal.inria.fr/inria-00344518), *IMACS 2005*) in all cases:
-
-- underflows and overflows in the floating point computation;
-- degenerate configurations (collinear points, colliding vertices, etc.).
 
 ## Robustness
 
 **Robust** means that the code:
 
 - raises an exception on `NaN` and `Inf` arguments;
-- gives a correct answer on all other inputs with `Float64` coordinates, no matter what.
+- gives a correct answer on all other inputs with `Float64` coordinates, no matter what (overflow, underflow, etc.);
+- in particular, no restriction on the coordinate range.
+
+## Why robustness matter?
+
+Even if the geometric data is approximate (for example when it comes from measurement),
+robust computation is important because it guarantees *soundness* with respect to some combinatorial properties of the predicates.
+For example `orient(a, b, c) == orient(b, c, a) == orient(c, a, b)`.
+
+“Inexact versions of these tests *[orient and incircle]* are vulnerable to roundoff error, and the wrong
+answers they produce can cause geometric algorithms to hang, crash, or produce
+incorrect output.”
+
+Jonathan Shewchuk, *Robust Adaptive Floating-point Geometric Predicates*
+
 
 ## Type for points
 
-The basic type for representing points in the plane is `Complex{Float64}` (a.k.a. `ComplexF64`).
-To define the predicates for a type `T`, simply define `complex(T)`.
+The basic type for representing points is `NTuple{N, Float64}`, where `N` is 2 or 3. Very concretly, that is `Tuple{Float64,Float64}` or `Tuple{Float64,Float64,Float64}`.
+
+To define the predicates for a type `T`, simply define a function `Tuple(::T)` or
+`coord(::T)` that output a `NTuple{N, Float64}` that contains the
+coordinates. Naturally, the computation is only robust if the conversion is robust too.
+There should be no performance penalty in the conversion.
 
 
-```@example
+```julia
 using ExactPredicates
-import Base: complex
-
 struct Point
     x :: Float64
     y :: Float64
 end
 
-complex(p :: Point) = complex(p.x, p.y)
-
+Tuple(p :: Point) = (p.x, p.y)
 incircle(Point(0.0, 0.0), Point(1.0, 0.0), Point(0.0, 1.0), Point(.5, .5))
+
+
+coord(p :: Float64) = (p, 0.0)
+coord(p :: Complex) = reim(p)
+incircle(0.0, 1.0, complex(0.0, 1.0), complex(.5, .5))
+
+using StaticArrays
+# StaticArrays already defines Tuple for SVector
+incircle(SVector(0.0, 0.0), SVector(1.0, 0.0), SVector(0.0, 1.0), SVector(.5, .5))
 ```
 
 
 ## License
 
-The package is released under the LGPLv3 license, or any later version, as required by CGAL's license.
+The package is released under the MIT license.
 
 
 ## Exported functions
 
-```@docs
-orient(p, q, r)
-```
-
-```@docs
-incircle(a, b, c, p)
+```@autodocs
+Modules = [ExactPredicates]
 ```
 
 

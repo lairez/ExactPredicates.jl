@@ -44,6 +44,15 @@ end
 
 abs2(u :: SVector) = inp(u, u)
 
+"""
+
+    orient(p :: 2, q :: 2, r :: 2) -> Int
+
+* Return 1 if `r` is on the left of the oriented line defined by `p` and `q`.
+* Return –1 if `r` is on the right.
+* Return 0 if `r` is on the line or if `p == q`.
+
+"""
 @genpredicates function orient(u :: 2, v :: 2, w :: 2)
     u = u - w
     v = v - w
@@ -54,6 +63,23 @@ abs2(u :: SVector) = inp(u, u)
     ext(u, v)
 end
 
+
+"""
+    incircle(a :: 2, b :: 2, c :: 2, p :: 2) -> Int
+
+
+Assume that `a`, `b` and `c` define a counterclockwise triangle.
+
+* Return 1 if `p` is strictly inside the circumcircle of this triangle.
+* Return –1 if `p` is outside.
+* Return 0 if `p` is on the circle.
+
+If the triangle is oriented clockwise, the signs are reversed.
+If `a`, `b` and `c` are collinear, this degenerate to an orientation test.
+
+If two of the four arguments are equal, return 0.
+
+"""
 @genpredicates function incircle(p :: 2, q :: 2, r :: 2, a :: 2)
 
     qp = q - p
@@ -80,7 +106,13 @@ end
     abs2(a)*ext(b, c) + abs2(b)*ext(c, a) + abs2(c)*ext(a, b)
 end
 
+"""
+    closestpoint(p :: 2, q :: 2, a :: 2) -> Int
 
+* Return 1 if `a` is closer to `p` than to `q`.
+* Return –1 if `a` is closer to `q` than to `p`.
+* Return 0 is `a` is equaly close to both.
+"""
 @genpredicates function closestpoint(p :: 2, q :: 2, a :: 2)
     pq = p - q
     pa = p - q
@@ -92,6 +124,13 @@ end
     inp(pq, pa+qa)
 end
 
+"""
+    closestpoint(p :: 3, q :: 3, a :: 3) -> Int
+
+Return 1 if `a` is closer to `p` than to `q`.
+Return –1 if `a` is closer to `q` than to `p`.
+Return 0 is `a` is equaly close to both.
+"""
 @genpredicates nogeneric function closestpoint(p :: 3, q :: 3, a :: 3)
     pq = p - q
     pa = p - q
@@ -103,6 +142,16 @@ end
     inp(pq, pa+qa)
 end
 
+"""
+    orient(p :: 3, q :: 3, r :: 3, a :: 3) -> Int
+
+Consider the oriented plane on which the triangle `pqr` is positively oriented.
+
+* Return 1 if `a` is below this plane.
+* Return –1 if `a` is above this plane.
+* Return 0 if `a` lies on this plane.
+
+"""
 @genpredicates function orient(p :: 3, q :: 3, r :: 3, a :: 3)
     pa = p - a
     qa = q - a
@@ -115,6 +164,14 @@ end
     det(pa..., qa..., ra...)
 end
 
+"""
+    insphere(p :: 3, q :: 3, r :: 3, s :: 3, a :: 3)
+
+* Return 1 if `a` is inside the circumscribed sphere defined by the four points `p`, `q`, `r` and `s`.
+* Return –1 if `a` is outside.
+* Return 0 is `a` lies on the sphere or if the four points are coplanar.
+
+"""
 @genpredicates function insphere(p :: 3, q :: 3, r :: 3, s :: 3, a :: 3)
     p = p - a
     q = q - a
@@ -129,5 +186,3 @@ end
 
 
 end
-
-
