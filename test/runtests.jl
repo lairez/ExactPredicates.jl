@@ -36,8 +36,8 @@ end
     @test incircle_dbg(a, b, c, b) == (0, Codegen.interval_flt)
     @test incircle_dbg(a, b, c, c) == (0, Codegen.interval_flt)
     @test incircle_dbg(a, b, b, c) == (0, Codegen.interval_flt)
-    @test incircle_dbg(a, b, c, p2(nextfloat(0.0))) == (1, Codegen.interval_flt)
-    @test incircle_dbg(a, b, c, p2(prevfloat(0.0))) == (-1, Codegen.interval_flt)
+    @test incircle(a, b, c, p2(nextfloat(0.0))) == 1
+    @test incircle(a, b, c, p2(prevfloat(0.0))) == -1
 
     a = p2(2.0)
     b = p2(1.0, 1.0)
@@ -55,6 +55,18 @@ end
         pts = (rand(1:2^26) + rand(1:2^26)*im)*rpts
         fpts = convert(Vector{Complex{Float64}}, pts)
         @test incircle_dbg(reinterpret(NTuple{2, Float64}, fpts)...) == (0, Codegen.exact_flt)
+    end
+end
+
+
+@testset "exactly collinear (small integers)" begin
+    for i in 1:10
+        rpts = rand(1:2^5, 4)
+        pts = (rand(1:2^5) + rand(1:2^5)*im)*rpts
+        fpts = convert(Vector{Complex{Float64}}, pts)
+        res, flt = incircle_dbg(reinterpret(NTuple{2, Float64}, fpts)...)
+        @test res == 0
+        @test flt ∈ [Codegen.zerotest_flt, Codegen.interval_flt]
     end
 end
 
@@ -82,6 +94,32 @@ end
         @test orient(u, v, w, a) == -orient(v, w, a, u) == orient(w, a, u, v) == -orient(a, u, v, w) == orient(v, u, a, w)
     end
 end
+
+@testset "underflow incircle" begin
+    p = randn(SVector{4, SVector{2, Float64}})
+
+    s = Set()
+    while all(abs(c) > floatmin(Float64) for r in p for c in r)
+        push!(s, incircle(p...))
+        p /= 2
+    end
+
+    @test length(s) == 1
+end
+
+
+@testset "overflow incircle" begin
+    p = randn(SVector{4, SVector{2, Float64}})
+
+    s = Set()
+    while all(isfinite(c) for r in p for c in r)
+        push!(s, incircle(p...))
+        p *= 2
+    end
+
+    @test length(s) == 1
+end
+
 
 
 import ExactPredicates: coord
