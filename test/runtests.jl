@@ -8,11 +8,14 @@ import Base: complex
 import ExactPredicates: incircle_dbg, orient_dbg
 
 p2(x, y=0.0) = (float(x), float(y))
+p3(x, y=0, z=0) = (float(x), float(y), float(z))
 
 @testset "easy" begin
     @test incircle(p2(0), p2(1), p2(0,1), p2(1/2,1/2)) == 1
     @test incircle(p2(0), p2(1), p2(0,1), p2(1,1)) == 0
     @test orient(p2(0.0), p2(1.0), p2(0.0,1.0)) == 1
+    @test orient(p3(1.0), p3(0.0,1.0), p3(0,0,1.0), p3(0.0)) == 1
+    @test insphere(p3(1.0), p3(0.0,1.0), p3(0,0,1.0), p3(0.0), p3(.5,.5,.5)) == 1
 end
 
 
@@ -71,6 +74,15 @@ end
             -incircle(a,c,b,d)
     end
 end
+
+@testset "orient3 consistency" begin
+    for i in 1:10
+        u, v, w = randn(SVector{3, SVector{3, Float64}})
+        a = randn()*u + randn()*v + randn()*w
+        @test orient(u, v, w, a) == -orient(v, w, a, u) == orient(w, a, u, v) == -orient(a, u, v, w) == orient(v, u, a, w)
+    end
+end
+
 
 import ExactPredicates: coord
 struct Point{T}
