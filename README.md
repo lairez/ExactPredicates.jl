@@ -43,6 +43,7 @@ Robust computation is important because it guarantees *soundness* with respect
 to some combinatorial properties of the predicates, on which many algorithms
 rely. For example
 > `orient(a, b, c) == orient(b, c, a) == orient(c, a, b)`,
+
 this
 is a very basic geometric observation, but a floating computation may fail to
 see this.
