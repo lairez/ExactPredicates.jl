@@ -7,8 +7,18 @@ that `ExactPredicates.coord(::T)` or `Base.Tuple(::T)` outputs a
 `Tuple{Float64,Float64,Float64}` or any type convertible to it `coord` or
 `Tuple`.
 
+## Planar predicates
+
 ```@autodocs
 Modules = [ExactPredicates]
+Pages = ["plane.jl"]
 ```
 
+## Spatial predicates
+
+
+```@autodocs
+Modules = [ExactPredicates]
+Pages = ["space.jl"]
+```
 

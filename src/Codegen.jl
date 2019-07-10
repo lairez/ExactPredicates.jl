@@ -447,10 +447,10 @@ macro genpredicate(args...)
             return $(debug(referencef))($(vars...))
         end
 
-        Base.@__doc__ @inline function $(mainf)($(nsig...))
+        Core.@__doc__(@inline function $(mainf)($(nsig...))
             $(fastfilter(formula))
             return $(slowf)($(vars...))
-        end
+        end)
 
         function $(debug(mainf))($(nsig...))
             $(fastfilter(formula, withretcode=true))

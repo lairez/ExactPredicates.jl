@@ -2,13 +2,6 @@
 # Author: Pierre Lairez
 
 
-"""
-    closestpoint(p :: 3, q :: 3, a :: 3) -> Int
-
-Return 1 if `a` is closer to `p` than to `q`.
-Return –1 if `a` is closer to `q` than to `p`.
-Return 0 is `a` is equaly close to both.
-"""
 @genpredicate nogeneric function closestpoint(p :: 3, q :: 3, a :: 3)
     pq = p - q
     pa = p - q
@@ -19,17 +12,16 @@ Return 0 is `a` is equaly close to both.
 
     inp(pq, pa+qa)
 end
+@doc """
+    closestpoint(p :: 3, q :: 3, a :: 3) -> Int
 
-"""
-    orient(p :: 3, q :: 3, r :: 3, a :: 3) -> Int
+Return 1 if `a` is closer to `p` than to `q`.
+Return –1 if `a` is closer to `q` than to `p`.
+Return 0 is `a` is equaly close to both.
+""" closestpoint(::NTuple{3, Float64},::NTuple{3, Float64},::NTuple{3, Float64})
 
-Consider the oriented plane on which the triangle `pqr` is positively oriented.
 
-* Return 1 if `a` is below this plane.
-* Return –1 if `a` is above this plane.
-* Return 0 if `a` lies on this plane.
 
-"""
 @genpredicate function orient(p :: 3, q :: 3, r :: 3, a :: 3)
     pa = p - a
     qa = q - a
@@ -41,15 +33,19 @@ Consider the oriented plane on which the triangle `pqr` is positively oriented.
 
     det(pa..., qa..., ra...)
 end
+@doc """
+    orient(p :: 3, q :: 3, r :: 3, a :: 3) -> Int
 
-"""
-    insphere(p :: 3, q :: 3, r :: 3, s :: 3, a :: 3)
+Consider the oriented plane on which the triangle `pqr` is positively oriented.
 
-* Return 1 if `a` is inside the circumscribed sphere defined by the four points `p`, `q`, `r` and `s`.
-* Return –1 if `a` is outside.
-* Return 0 is `a` lies on the sphere or if the four points are coplanar.
+* Return 1 if `a` is below this plane.
+* Return –1 if `a` is above this plane.
+* Return 0 if `a` lies on this plane.
 
-"""
+""" orient(::NTuple{3, Float64},::NTuple{3, Float64},::NTuple{3, Float64},::NTuple{3, Float64})
+
+
+
 @genpredicate function insphere(p :: 3, q :: 3, r :: 3, s :: 3, a :: 3)
     p = p - a
     q = q - a
@@ -60,4 +56,12 @@ end
 
     det(p..., abs2(p), q..., abs2(q), r..., abs2(r), s..., abs2(s))
 end
+@doc """
+    insphere(p :: 3, q :: 3, r :: 3, s :: 3, a :: 3)
+
+* Return 1 if `a` is inside the circumscribed sphere defined by the four points `p`, `q`, `r` and `s`.
+* Return –1 if `a` is outside.
+* Return 0 is `a` lies on the sphere or if the four points are coplanar.
+
+""" insphere(::NTuple{3, Float64},::NTuple{3, Float64},::NTuple{3, Float64},::NTuple{3, Float64},::NTuple{3, Float64})
 
