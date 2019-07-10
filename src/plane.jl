@@ -67,7 +67,7 @@ end
 
 
 
-@genpredicate function closestpoint(p :: 2, q :: 2, a :: 2)
+@genpredicate function closest(p :: 2, q :: 2, a :: 2)
     pq = p - q
     pa = p - q
     qa = q - a
@@ -78,9 +78,9 @@ end
     inp(pq, pa+qa)
 end
 @doc """
-    closestpoint(p :: 2, q :: 2, a :: 2) -> Int
+    closest(p :: 2, q :: 2, a :: 2) -> Int
 
 * Return 1 if `a` is closer to `p` than to `q`.
 * Return –1 if `a` is closer to `q` than to `p`.
 * Return 0 is `a` is equaly close to both.
-""" closestpoint(::NTuple{2, Float64}, ::NTuple{2, Float64}, ::NTuple{2, Float64})
+""" closest(::NTuple{2, Float64}, ::NTuple{2, Float64}, ::NTuple{2, Float64})

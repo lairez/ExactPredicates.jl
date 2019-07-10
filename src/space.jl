@@ -2,7 +2,7 @@
 # Author: Pierre Lairez
 
 
-@genpredicate nogeneric function closestpoint(p :: 3, q :: 3, a :: 3)
+@genpredicate nogeneric function closest(p :: 3, q :: 3, a :: 3)
     pq = p - q
     pa = p - q
     qa = q - a
@@ -13,12 +13,12 @@
     inp(pq, pa+qa)
 end
 @doc """
-    closestpoint(p :: 3, q :: 3, a :: 3) -> Int
+    closest(p :: 3, q :: 3, a :: 3) -> Int
 
 Return 1 if `a` is closer to `p` than to `q`.
 Return –1 if `a` is closer to `q` than to `p`.
 Return 0 is `a` is equaly close to both.
-""" closestpoint(::NTuple{3, Float64},::NTuple{3, Float64},::NTuple{3, Float64})
+""" closest(::NTuple{3, Float64},::NTuple{3, Float64},::NTuple{3, Float64})
 
 
 
