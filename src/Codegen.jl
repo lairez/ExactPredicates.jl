@@ -406,6 +406,9 @@ macro genpredicate(args...)
     nsig = (a for a in nargs)
     vars = (a.args[1] for a in nargs)
 
+    # This is the fun part: we inject into the body of the function given in
+    # argument the formal input. This gives an object of type Formula that
+    # represents the polynomial.
     formula = Core.eval(__module__,
          Expr(:call,
               Expr(:->, Expr(:tuple, vars...), fun.args[2]),
