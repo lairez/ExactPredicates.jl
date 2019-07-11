@@ -4,5 +4,5 @@ using Documenter, ExactPredicates
 
 makedocs(sitename="ExactPredicates.jl",
          pages = ["index.md", "api.md"],
-         repo = "https://github.com/lairez/ExactPredicates.jl/blob/{commit}{path}#{line}")
+         repo = "https://github.com/lairez/ExactPredicates.jl/blob/master{path}#{line}")
 
