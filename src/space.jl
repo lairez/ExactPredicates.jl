@@ -3,14 +3,14 @@
 
 
 @genpredicate nogeneric function closest(p :: 3, q :: 3, a :: 3)
-    pq = p - q
+    qp = q - p
     pa = p - a
     qa = q - a
 
-    Codegen.group!(pq...)
+    Codegen.group!(qp...)
     Codegen.group!(pa..., qa...)
 
-    inp(pq, pa+qa)
+    inp(qp, pa+qa)
 end
 @doc """
     closest(p :: 3, q :: 3, a :: 3) -> Int

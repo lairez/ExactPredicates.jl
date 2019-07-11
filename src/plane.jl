@@ -68,14 +68,14 @@ end
 
 
 @genpredicate function closest(p :: 2, q :: 2, a :: 2)
-    pq = p - q
+    qp = q - p
     pa = p - a
     qa = q - a
 
-    Codegen.group!(pq...)
+    Codegen.group!(qp...)
     Codegen.group!(pa..., qa...)
 
-    inp(pq, pa+qa)
+    inp(qp, pa+qa)
 end
 @doc """
     closest(p :: 2, q :: 2, a :: 2) -> Int
