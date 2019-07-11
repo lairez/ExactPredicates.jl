@@ -120,6 +120,13 @@ end
     @test length(s) == 1
 end
 
+@testset "closest point 2d" begin
+    a, b, p = (-264.2397483183316, -147.68399381193498),
+    (-264.23974834572186, -147.68399391802012),
+    (-264.2397478247797, -147.68399318319462)
+
+    @test closest(a, b, p) == 1
+end
 
 
 import ExactPredicates: coord
