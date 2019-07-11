@@ -69,7 +69,7 @@ end
 
 @genpredicate function closest(p :: 2, q :: 2, a :: 2)
     pq = p - q
-    pa = p - q
+    pa = p - a
     qa = q - a
 
     Codegen.group!(pq...)

@@ -4,7 +4,7 @@
 
 @genpredicate nogeneric function closest(p :: 3, q :: 3, a :: 3)
     pq = p - q
-    pa = p - q
+    pa = p - a
     qa = q - a
 
     Codegen.group!(pq...)
