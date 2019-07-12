@@ -91,7 +91,7 @@ end
 
 * Return 1 if the open line segments `(p, q)` and `(a, b)` meet in a single point.
 * Return 0 if the the closed line segments `[p, a]` and `[a, b]` meet in one or several points.
-* Return -1 otherwise.
+* Return –1 otherwise.
 """
 function meet(p, q, a, b)
     pqa = orient(p, q, a)
