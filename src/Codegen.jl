@@ -208,7 +208,7 @@ function fastfilter(f :: Formula ; withretcode :: Bool = false)
     # and that no underflow occurs when computing acc.error*Π λ[g]^acc.deg[g].
 
     acc = accumulator(f)
-    totdeg = sum(values(acc.deg))
+    totdeg = UInt(sum(values(acc.deg)))
 
     @gensym signres
 
@@ -217,13 +217,14 @@ function fastfilter(f :: Formula ; withretcode :: Bool = false)
         # bigger than the maximal possible absolute error by looking only at the
         # exponents.
 
-        emask = Int64(Base.exponent_mask(Float64))
-        mantissabits = Base.Math.significand_bits(Float64)
+        emask = Base.exponent_mask(Float64)
+        mantissabits = UInt(Base.Math.significand_bits(Float64))
         grouplogs = []
         for (idx, g) in acc.groups
             @gensym glog
             push!(grouplogs, glog)
-            alllogs = [:(reinterpret(Int64, $v) & $emask) for v in g]
+
+            alllogs = [:(reinterpret(UInt64, $v) & $emask) for v in g]
             push!(code, :($glog = max($(alllogs...)) >> $mantissabits))
             # we could probably work without the shift, but it would make it
             # harder to think about overflows/underflows.
@@ -233,22 +234,25 @@ function fastfilter(f :: Formula ; withretcode :: Bool = false)
             end
         end
 
-        errlog = ((reinterpret(Int64, acc.error) & emask) >> mantissabits) -
-            totdeg * ( Int64(Base.exponent_one(Float64)) >> mantissabits ) + totdeg
+        errlog = ((reinterpret(UInt64, acc.error) & emask) >> mantissabits) -
+            totdeg * ( Base.exponent_one(Float64) >> mantissabits ) + totdeg
 
         @gensym ε
         @gensym reslog
         @gensym rawres
 
         filter = quote
-            $ε :: Int64 = $(Expr(:call, :+, errlog, grouplogs...))
-            $rawres = reinterpret(Int64, $res)
-            $signres = sign($rawres)
+            $ε = $(Expr(:call, :+, errlog, grouplogs...))
+            $rawres = reinterpret(UInt64, $res)
+            $signres = Base.ifelse($rawres & $(Base.sign_mask(Float64)) == 0, 1, -1)
             $reslog = ($rawres & $emask) >> $mantissabits
 
             if $reslog != $(emask >> mantissabits) && # protect against Inf and Nan
-                $ε ≥ 0 &&       # protect against underflow in computation of ε
+                #$ε ≥ 0 &&       # protect against underflow in computation of ε
                 $reslog > $ε    # main test
+                # we should check that ε is not
+                # negative. But since we are in unsigned arithmetic, ε < 0 means
+                # actually that ε is big, so reslog > ε cannot hold.
 
                 $(withretcode ? :(return ($signres, $fastfp_flt)) : :(return $signres))
             end
