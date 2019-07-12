@@ -149,3 +149,13 @@ coord(p :: Point) = (p.x, p.y)
 end
 
 
+
+@testset "meet" begin
+    for _ in 1:10
+        t = [exp(im*2*pi*a) for a in sort(rand(4))]
+        @test meet(t[1], t[2], t[3], t[4]) == -1
+        @test meet(t[1], t[3], t[2], t[4]) == 1
+    end
+end
+
+

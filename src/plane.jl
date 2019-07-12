@@ -84,3 +84,30 @@ end
 * Return –1 if `a` is closer to `q` than to `p`.
 * Return 0 is `a` is equaly close to both.
 """ closest(::NTuple{2, Float64}, ::NTuple{2, Float64}, ::NTuple{2, Float64})
+
+
+"""
+    meet(p :: 2, q :: 2, a :: 2, b :: 2)
+
+* Return 1 if the open line segments `(p, q)` and `(a, b)` meet in a single point.
+* Return 0 if the the closed line segments `[p, a]` and `[a, b]` meet in one or several points.
+* Return -1 otherwise.
+"""
+function meet(p, q, a, b)
+    pqa = orient(p, q, a)
+    pqb = orient(p, q, b)
+    abp = orient(a, b, p)
+    abq = orient(a, b, q)
+
+    # if x and y are integer in {-1, 0, 1}, then xor(x,y)==-2 is equivalent to
+    # x*y == -1.
+    if xor(pqa, pqb) == -2 && xor(abp, abq) == -2
+        return 1
+    elseif pqa & pqb == 1 || abp & abq == 1
+        return -1
+    elseif p == q && a == b && a != p
+        return -1
+    else
+        return 0
+    end
+end

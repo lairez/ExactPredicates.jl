@@ -3,7 +3,7 @@
 
 module ExactPredicates
 
-export incircle, orient, closest, insphere
+export incircle, orient, closest, insphere, meet
 
 include("Codegen.jl")
 
