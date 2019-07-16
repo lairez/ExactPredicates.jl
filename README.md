@@ -15,7 +15,7 @@ an algorithm that rigorously determines its sign on any given input points.
 ## Features
 
 * Planar predicates: `orient` (left or right of a line), `incircle` (inside or
-  outside a circle), `closest` (closer to this or that point)
+  outside a circle), `closest` (closer to this or that point), `meet` (intersection of line segments)
 * Spatial predicates: `orient` (above or below a plane), `insphere` (inside or
   outside a ball), `closest` (closer to this or that point)
 * Simplistic API, points are just `Tuple{Float64,Float64}` or `Tuple{Float64,Float64,Float64}`
