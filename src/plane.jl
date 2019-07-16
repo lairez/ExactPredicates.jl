@@ -86,6 +86,34 @@ end
 """ closest(::NTuple{2, Float64}, ::NTuple{2, Float64}, ::NTuple{2, Float64})
 
 
+
+"""
+    sameside(p :: 2, a :: 2, b :: 2)
+
+Assume that the three arguments are collinear, on some line L
+
+* Return 1 if `a` and `b` are on the same side of `p` on L
+* Return -1 if `a` and `b` are on different sides
+* Return 0 if `a == p` or `b == p`.
+"""
+function sameside(p :: Tuple{Float64, Float64}, a :: Tuple{Float64, Float64}, b :: Tuple{Float64, Float64})
+    if a[1] > p[1] && b[1] > p[1] || a[1] < p[1] && b[1] < p[1]
+        return 1
+    elseif a[1] < p[1] && b[1] > p[1] || a[1] > p[1] && b[1] < p[1]
+        return -1
+    elseif a[2] > p[2] && b[2] > p[2] || a[2] < p[2] && b[2] < p[2]
+        return 1
+    elseif a[2] < p[2] && b[2] > p[2] || a[2] > p[2] && b[2] < p[2]
+        return -1
+    else
+        return 0
+    end
+end
+
+function sameside(p, a, b)
+    sameside(coord(p), coord(a), coord(b))
+end
+
 """
     meet(p :: 2, q :: 2, a :: 2, b :: 2)
 
@@ -105,8 +133,13 @@ function meet(p, q, a, b)
         return 1
     elseif pqa & pqb == 1 || abp & abq == 1
         return -1
-    elseif p == q && a == b && a != p
-        return -1
+    elseif pqa == 0 && pqb == 0
+        # all four points are collinear
+        if sameside(p, a, b) == 1 && sameside(q, a, b) == 1 && sameside(a, p, q) == 1 && sameside(b, p, q) == 1
+            return -1
+        else
+            return 0
+        end
     else
         return 0
     end

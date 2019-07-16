@@ -155,7 +155,13 @@ end
         t = [exp(im*2*pi*a) for a in sort(rand(4))]
         @test meet(t[1], t[2], t[3], t[4]) == -1
         @test meet(t[1], t[3], t[2], t[4]) == 1
+        @test meet(t[1], t[3], t[3], t[4]) == 0
+        @test meet(t[1], t[3], t[3], t[1]) == 0
     end
+
+    @test meet(p2(0), p2(1), p2(3), p2(4)) == -1
+    @test meet(p2(0), p2(3), p2(1), p2(4)) == 0
+    @test meet(p2(1), p2(4), p2(1), p2(2)) == 0
 end
 
 
