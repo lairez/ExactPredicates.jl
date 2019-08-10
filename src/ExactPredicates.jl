@@ -46,6 +46,11 @@ end
 abs2(u :: SVector) = inp(u, u)
 
 
+# if x and y are integer in {-1, 0, 1}, then xor(x,y)==-2 is equivalent to x*y == -1.
+opposite_signs(x :: Int, y :: Int) = (xor(x, y) == -2)
+
+
+
 include("plane.jl")
 include("space.jl")
 

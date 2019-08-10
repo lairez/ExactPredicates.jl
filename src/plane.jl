@@ -7,8 +7,8 @@
     u = u - w
     v = v - w
 
-    Codegen.group!(u[1], v[1])
-    Codegen.group!(u[2], v[2])
+    Codegen.group!(u...)
+    Codegen.group!(v...)
 
     ext(u, v)
 end
@@ -127,9 +127,7 @@ function meet(p, q, a, b)
     abp = orient(a, b, p)
     abq = orient(a, b, q)
 
-    # if x and y are integer in {-1, 0, 1}, then xor(x,y)==-2 is equivalent to
-    # x*y == -1.
-    if xor(pqa, pqb) == -2 && xor(abp, abq) == -2
+    if opposite_signs(pqa, pqb) && opposite_signs(abp, abq)
         return 1
     elseif pqa & pqb == 1 || abp & abq == 1
         return -1
@@ -144,3 +142,46 @@ function meet(p, q, a, b)
         return 0
     end
 end
+
+
+
+@genpredicate function relative_orient(a :: 2, b :: 2, p :: 2, q :: 2)
+    b = b - a
+    q = q - p
+    Codegen.group!(b...)
+    Codegen.group!(q...)
+    return ext(b, q)
+end
+
+
+function rotation(pts :: AbstractVector{T}) where T
+    u = rand(SVector{2, Float64})
+    origin = (0.0, 0.0)
+
+    n = length(pts)
+    @assert n >= 3
+
+    pts = copy(pts)
+    push!(pts, pts[1], pts[2])
+
+    r = 0
+    o1 = relative_orient(origin, u, pts[1], pts[2])
+    for i in 1:n
+        o2 = relative_orient(origin, u, pts[i+1], pts[i+2])
+        if opposite_signs(o1, o2)
+            ro = relative_orient(pts[i], pts[i+1], pts[i+1], pts[i+2])
+            @assert ro != 0
+            if ro > 0 && o1 < 0
+                r += 1
+            elseif ro < 0 && o1 > 0
+                r -= 1
+            end
+        end
+        o1 = o2
+    end
+
+    return r
+end
+
+
+
