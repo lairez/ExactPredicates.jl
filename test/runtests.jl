@@ -194,16 +194,9 @@ end
     @test intersectorder(a, b, pa, pb, qa, qb) == -1
     @test intersectorder(a, b, pb, pa, qa, qb) == 1
 
-    for _ in 1:30
+    for _ in 1:10
         a, b, pa, pb, qa, qb = randn(ComplexF64, 6)
-        if parallelorder(a, b, pa, pa) == -1
-            pa, pb = pb, pa
-        end
-        if parallelorder(a, b, qa, qb) == -1
-            qa, qb = qb, qa
-        end
-        io = intersectorder(a, b, pa, pb, qa, qb)
-        @test intersectorder(qa, qb, a, b, pa, pb) == io
+        @test intersectorder(a, b, pa, pb, qa, qb) == intersectorder(qa, qb, a, b, pa, pb)
     end
 end
 
