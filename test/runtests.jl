@@ -81,6 +81,12 @@ end
 end
 
 
+@testset "fast zero detection" begin
+    a, b, c, d = [reim(p) for p in randn(ComplexF64, 4)]
+    @test orient_dbg(a, b, b) == (0, Codegen.zerotest_flt)
+    @test orient_dbg(a, b, a) == (0, Codegen.zerotest_flt)
+end
+
 @testset "incircle consistency" begin
     for i in 1:10
         a,b,c,d = randn(ComplexF64)*[exp(x*im) for x in randn(Float64, 4)] .+ randn(ComplexF64)
@@ -149,6 +155,13 @@ coord(p :: Point) = (p.x, p.y)
 end
 
 
+@testset "parallelorder" begin
+    for _ in 1:10
+        a, b, c, d = randn(ComplexF64, 4)
+        @test orient(a, b, c) == parallelorder(a, b, a, c)
+    end
+end
+
 
 @testset "meet" begin
     for _ in 1:10
@@ -162,6 +175,36 @@ end
     @test meet(p2(0), p2(1), p2(3), p2(4)) == -1
     @test meet(p2(0), p2(3), p2(1), p2(4)) == 0
     @test meet(p2(1), p2(4), p2(1), p2(2)) == 0
+end
+
+
+@testset "rotation" begin
+    angles = 3*pi*2*rand(30)
+    sort!(angles)
+    pts = [exp(im*α) for α in angles]
+    @test rotation(pts) == 3
+end
+
+
+@testset "intersectorder" begin
+    a, b, pa, pb, qa, qb = (complex(0.0), complex(1.0),
+                            complex(0.0, 3.0), complex(2.0, 1.0),
+                            complex(0.0, 2.0), complex(2.0, 1.0))
+
+    @test intersectorder(a, b, pa, pb, qa, qb) == -1
+    @test intersectorder(a, b, pb, pa, qa, qb) == 1
+
+    for _ in 1:30
+        a, b, pa, pb, qa, qb = randn(ComplexF64, 6)
+        if parallelorder(a, b, pa, pa) == -1
+            pa, pb = pb, pa
+        end
+        if parallelorder(a, b, qa, qb) == -1
+            qa, qb = qb, qa
+        end
+        io = intersectorder(a, b, pa, pb, qa, qb)
+        @test intersectorder(qa, qb, a, b, pa, pb) == io
+    end
 end
 
 

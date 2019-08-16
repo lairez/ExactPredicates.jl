@@ -7,8 +7,8 @@
     u = u - w
     v = v - w
 
-    Codegen.group!(u...)
-    Codegen.group!(v...)
+    group!(u...)
+    group!(v...)
 
     ext(u, v)
 end
@@ -31,10 +31,10 @@ end
     aq = a - q
     rq = r - q
 
-    Codegen.group!(qp...)
-    Codegen.group!(ap...)
-    Codegen.group!(rp...)
-    Codegen.group!(rq..., aq...)
+    group!(qp...)
+    group!(ap...)
+    group!(rp...)
+    group!(rq..., aq...)
 
     ext(qp, ap)*inp(rp, rq) - ext(qp, rp)*inp(ap, aq)
 end
@@ -61,7 +61,7 @@ If two of the four arguments are equal, return 0.
     b = b - p
     c = c - p
 
-    Codegen.group!(a..., b..., c...)
+    group!(a..., b..., c...)
     abs2(a)*ext(b, c) + abs2(b)*ext(c, a) + abs2(c)*ext(a, b)
 end
 
@@ -72,8 +72,8 @@ end
     pa = p - a
     qa = q - a
 
-    Codegen.group!(qp...)
-    Codegen.group!(pa..., qa...)
+    group!(qp...)
+    group!(pa..., qa...)
 
     inp(qp, pa+qa)
 end
@@ -145,13 +145,28 @@ end
 
 
 
-@genpredicate function relative_orient(a :: 2, b :: 2, p :: 2, q :: 2)
-    b = b - a
-    q = q - p
-    Codegen.group!(b...)
-    Codegen.group!(q...)
-    return ext(b, q)
+"""
+    parallelorder(a :: 2, b :: 2, p :: 2, q :: 2)
+
+Consider the oriented line defined by `a` and `b`
+and the parallel lines passing through `p` and `q` respectively, with the same orientation.
+
+* return 1 if the line passing through `p` is left of the line passing through `q`.
+* return -1 in the reverse situation.
+* return 0 if `a` and `b` are equal or if the parallel lines passing through `p` and `q` are equal.
+
+This is a robust version of to `orient(b-a, q-p, 0)`.
+Note also that `orient(a, b, c) == parallelorder(a, b, a, c)`.
+"""
+@genpredicate function parallelorder(a :: 2, b :: 2, p :: 2, q :: 2)
+    δ = b - a
+    qp = q - p
+
+    group!(δ...)
+    group!(qp...)
+    ext(δ, qp)
 end
+
 
 
 function rotation(pts :: AbstractVector{T}) where T
@@ -165,11 +180,11 @@ function rotation(pts :: AbstractVector{T}) where T
     push!(pts, pts[1], pts[2])
 
     r = 0
-    o1 = relative_orient(origin, u, pts[1], pts[2])
+    o1 = parallelorder(origin, u, pts[1], pts[2])
     for i in 1:n
-        o2 = relative_orient(origin, u, pts[i+1], pts[i+2])
+        o2 = parallelorder(origin, u, pts[i+1], pts[i+2])
         if opposite_signs(o1, o2)
-            ro = relative_orient(pts[i], pts[i+1], pts[i+1], pts[i+2])
+            ro = parallelorder(pts[i], pts[i+1], pts[i+1], pts[i+2])
             @assert ro != 0
             if ro > 0 && o1 < 0
                 r += 1
@@ -182,6 +197,39 @@ function rotation(pts :: AbstractVector{T}) where T
 
     return r
 end
+
+"""
+    intersectorder(a :: 2, b :: 2, pa :: 2, pb :: 2, qa :: 2, qb :: 2)
+
+Consider the oriented line *L* defined by `a` and `b`, the line *P* defined by
+`pa` and `pb` and the line *Q* defined by `qa` and `qb`.
+
+Assumes that `parallelorder(a, b, pa, pb)` and `parallelorder(a, b, qa, qb)` have the same sign.
+    Otherwise, the result has the opposite sign.
+
+* return -1 if the intersection of *P* with *L* comes before the intersection of *Q* with *L*, following the orientation of *L*.
+* return 1 in the reverse situation
+* return 0 in case of equality or degeneracy.
+"""
+@genpredicate function intersectorder(a :: 2, b :: 2, pa :: 2, pb :: 2, qa :: 2, qb :: 2)
+    pp = pb - pa
+    qq = qb - qa
+    δ = b - a
+    p0 = pa - a
+    q0 = qa - a
+
+    group!(pp...)
+    group!(qq...)
+    group!(δ...)
+    group!(p0..., q0...)
+
+    det(ext(p0, pp), ext(q0, qq),
+        ext(δ, pp), ext(δ, qq))
+end
+
+
+
+
 
 
 

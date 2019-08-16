@@ -3,14 +3,14 @@
 
 module ExactPredicates
 
-export incircle, orient, closest, insphere, meet, sameside
+export incircle, orient, closest, insphere, meet, sameside, rotation, parallelorder, intersectorder
 
 include("Codegen.jl")
 
 using StaticArrays
 using IntervalArithmetic
 
-using .Codegen
+using .Codegen: group!, @genpredicate
 import .Codegen: coord
 
 export coord
