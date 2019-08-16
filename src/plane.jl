@@ -144,9 +144,16 @@ function meet(p, q, a, b)
 end
 
 
+@genpredicate function parallelorder(a :: 2, b :: 2, p :: 2, q :: 2)
+    δ = b - a
+    qp = q - p
 
-"""
-    parallelorder(a :: 2, b :: 2, p :: 2, q :: 2)
+    group!(δ...)
+    group!(qp...)
+    ext(δ, qp)
+end
+@doc """
+    parallelorder(a :: 2, b :: 2, p :: 2, q :: 2) -> Int
 
 Consider the oriented line defined by `a` and `b`
 and the parallel lines passing through `p` and `q` respectively, with the same orientation.
@@ -157,18 +164,16 @@ and the parallel lines passing through `p` and `q` respectively, with the same o
 
 This is a robust version of to `orient(b-a, q-p, 0)`.
 Note also that `orient(a, b, c) == parallelorder(a, b, a, c)`.
+""" parallelorder(:: NTuple{2, Float64}, :: NTuple{2, Float64}, :: NTuple{2, Float64}, :: NTuple{2, Float64})
+
+
+
+
 """
-@genpredicate function parallelorder(a :: 2, b :: 2, p :: 2, q :: 2)
-    δ = b - a
-    qp = q - p
+    rotation(pts :: AbstractVector)
 
-    group!(δ...)
-    group!(qp...)
-    ext(δ, qp)
-end
-
-
-
+Gives the number of rotation of the polygonal path defined by the elements of `pts`.
+"""
 function rotation(pts :: AbstractVector{T}) where T
     u = rand(SVector{2, Float64})
     origin = (0.0, 0.0)
@@ -198,19 +203,8 @@ function rotation(pts :: AbstractVector{T}) where T
     return r
 end
 
-"""
-    intersectorder(a :: 2, b :: 2, pa :: 2, pb :: 2, qa :: 2, qb :: 2)
 
-Consider the oriented line *L* defined by `a` and `b`, the line *P* defined by
-`pa` and `pb` and the line *Q* defined by `qa` and `qb`.
 
-Assumes that `parallelorder(a, b, pa, pb)` and `parallelorder(a, b, qa, qb)` have the same sign.
-    Otherwise, the result has the opposite sign.
-
-* return -1 if the intersection of *P* with *L* comes before the intersection of *Q* with *L*, following the orientation of *L*.
-* return 1 in the reverse situation
-* return 0 in case of equality or degeneracy.
-"""
 @genpredicate function intersectorder(a :: 2, b :: 2, pa :: 2, pb :: 2, qa :: 2, qb :: 2)
     pp = pb - pa
     qq = qb - qa
@@ -226,8 +220,19 @@ Assumes that `parallelorder(a, b, pa, pb)` and `parallelorder(a, b, qa, qb)` hav
     det(ext(p0, pp), ext(q0, qq),
         ext(δ, pp), ext(δ, qq))
 end
+@doc """
+    intersectorder(a :: 2, b :: 2, pa :: 2, pb :: 2, qa :: 2, qb :: 2) -> Int
 
+Consider the oriented line *L* defined by `a` and `b`, the line *P* defined by
+`pa` and `pb` and the line *Q* defined by `qa` and `qb`.
 
+Assumes that `parallelorder(a, b, pa, pb)` and `parallelorder(a, b, qa, qb)` have the same sign.
+    Otherwise, the result has the opposite sign.
+
+* return -1 if the intersection of *P* with *L* comes before the intersection of *Q* with *L*, following the orientation of *L*.
+* return 1 in the reverse situation
+* return 0 in case of equality or degeneracy.
+""" intersectorder(:: NTuple{2, Float64}, :: NTuple{2, Float64}, :: NTuple{2, Float64}, :: NTuple{2, Float64}, :: NTuple{2, Float64}, :: NTuple{2, Float64})
 
 
 
