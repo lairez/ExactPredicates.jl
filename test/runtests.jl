@@ -29,7 +29,7 @@ end
 
 
 
-@testset "pertubations" begin
+@testset "perturbations" begin
     a = p2(0.0)
     b = p2(1.0)
     c = p2(0.0, 1.0)
