@@ -319,9 +319,6 @@ function ivfilter(f :: Formula ; withretcode :: Bool = false)
 
     @gensym ivres
     quote
-        # Default rounding mode may have problems with underflows
-        # See https://github.com/JuliaIntervals/IntervalArithmetic.jl/issues/302
-        setrounding(Interval, :slow)
         # We now resort to interval arithmetic It is an interesting filter when
         # the data is made of exactly representable integers.
         $ivres = $(evalcode(f,  s -> :( interval($s) )))
