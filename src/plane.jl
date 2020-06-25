@@ -97,13 +97,9 @@ Assume that the three arguments are collinear, on some line L
 * Return 0 if `a == p` or `b == p`.
 """
 function sameside(p :: Tuple{Float64, Float64}, a :: Tuple{Float64, Float64}, b :: Tuple{Float64, Float64})
-    if a[1] > p[1] && b[1] > p[1] || a[1] < p[1] && b[1] < p[1]
+    if a < p && b < p || a > p && b > p
         return 1
-    elseif a[1] < p[1] && b[1] > p[1] || a[1] > p[1] && b[1] < p[1]
-        return -1
-    elseif a[2] > p[2] && b[2] > p[2] || a[2] < p[2] && b[2] < p[2]
-        return 1
-    elseif a[2] < p[2] && b[2] > p[2] || a[2] > p[2] && b[2] < p[2]
+    elseif a < p && b > p || a > p && b < p
         return -1
     else
         return 0
