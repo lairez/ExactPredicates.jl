@@ -96,8 +96,8 @@ incircle(p, q, r, a)
 
 ### Working with other types of points
 
-All the predicates will work with a type `T`, if one of the function `Tuple(::T)` or
-`coord(::T)` is defined and outputs a `NTuple{N, Float64}` that contains the coordinates the
+All the predicates will work with a type `T`, if one of the function `Core.Tuple(::T)` or
+`ExactPredicates.coord(::T)` is defined and outputs a `NTuple{N, Float64}` that contains the coordinates the
 coordinates. Naturally, the computation is only robust if the conversion is robust too.
 Here is a typical use.
 
@@ -108,7 +108,7 @@ struct Point
     y :: Float64
 end
 
-Tuple(p :: Point) = (p.x, p.y)
+Core.Tuple(p :: Point) = (p.x, p.y)
 incircle(Point(0.0, 0.0), Point(1.0, 0.0), Point(0.0, 1.0), Point(.5, .5))
 ```
 
@@ -116,8 +116,8 @@ A nice type to represent points in the plane is `Complex{Float64}`.
 It is not desirable to redefine `Tuple(::Complex)`, so we overload `coord` instead.
 
 ```julia
-coord(p :: Float64) = (p, 0.0)
-coord(p :: Complex) = reim(p)
+ExactPredicates.coord(p :: Float64) = (p, 0.0)
+ExactPredicates.coord(p :: Complex) = reim(p)
 incircle(0.0, 1.0, complex(0.0, 1.0), complex(.5, .5))
 ```
 
