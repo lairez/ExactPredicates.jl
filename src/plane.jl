@@ -125,7 +125,7 @@ function meet(p, q, a, b)
 
     if opposite_signs(pqa, pqb) && opposite_signs(abp, abq)
         return 1
-    elseif pqa * pqb == 1 || abp * abq == 1
+    elseif (pqa != 0 && pqa == pqb)  || (abq != 0  && abp == abq)
         return -1
     elseif pqa == 0 && pqb == 0
         # all four points are collinear
