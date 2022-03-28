@@ -175,6 +175,15 @@ end
     @test meet(p2(0), p2(1), p2(3), p2(4)) == -1
     @test meet(p2(0), p2(3), p2(1), p2(4)) == 0
     @test meet(p2(1), p2(4), p2(1), p2(2)) == 0
+
+    a = (0.0, 0.0)
+    b = (2.0, 2.0)
+    c = (-3., -8.)
+    d = (-1., -1.)
+    @test meet(a, b, c, d) == -1
+    @test meet(c, d, a, b) == -1
+
+
 end
 
 
