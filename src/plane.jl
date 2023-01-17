@@ -114,7 +114,7 @@ end
     meet(p :: 2, q :: 2, a :: 2, b :: 2)
 
 * Return 1 if the open line segments `(p, q)` and `(a, b)` meet in a single point.
-* Return 0 if the the closed line segments `[p, a]` and `[a, b]` meet in one or several points.
+* Return 0 if the the closed line segments `[p, q]` and `[a, b]` meet in one or several points.
 * Return –1 otherwise.
 """
 function meet(p, q, a, b)
