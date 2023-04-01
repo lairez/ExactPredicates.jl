@@ -3,7 +3,7 @@
 
 module ExactPredicates
 
-export incircle, orient, closest, insphere, meet, sameside, rotation, parallelorder, intersectorder
+export incircle, orient, closest, insphere, meet, sameside, rotation, parallelorder, intersectorder, lengthcompare
 
 include("Codegen.jl")
 

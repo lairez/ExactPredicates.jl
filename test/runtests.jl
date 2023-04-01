@@ -210,3 +210,12 @@ end
 end
 
 
+@testset "lengthcompare" begin
+    a = (0.0, 0.0)
+    b = (2.0, 2.0)
+    c = (-3., -8.)
+    d = (-1., -1.)
+    @test lengthcompare(c, d, a, b) == 1
+    @test lengthcompare(a, b, c, d) == -1
+    @test lengthcompare(c, (c[1]+d[1], c[2]+d[2]), a, b) == -1
+end

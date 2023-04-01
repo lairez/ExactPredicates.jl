@@ -232,5 +232,16 @@ Assumes that `parallelorder(a, b, pa, pb)` and `parallelorder(a, b, qa, qb)` hav
 
 
 
+@genpredicate function lengthcompare(a :: 2, b :: 2, c :: 2, d :: 2)
+    group!(a..., b..., c..., d...)
+    return inp(a - b, a - b) - inp(c - d, c - d)
+end
 
+@doc """
+    lengthcompare(a :: 2, b :: 2, c :: 2, d :: 2) -> Int
 
+* return -1 if the distance between `a` and `b` is smaller than the distance between `c` and `d`
+* return 1 in the reverse situation
+* return 0 in case the distance are equal
+"""
+lengthcompare(:: NTuple{2, Float64}, :: NTuple{2, Float64}, :: NTuple{2, Float64}, :: NTuple{2, Float64})
