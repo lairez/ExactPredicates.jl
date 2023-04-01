@@ -326,13 +326,13 @@ function ivfilter(f :: Formula ; withretcode :: Bool = false, withval :: Bool = 
         $ivres = $(evalcode(f,  s -> :( interval($s) )))
         if $ivres < 0
             #$(withretcode ? :(return (-1, $interval_flt)) : :(return -1))
-            $((withretcode && withval) ? :(return (-1, $interval_flt, -1)) : ((withretcode && !withval) ? :(return (-1, $interval_flt)) : ((!withretcode && withval) ? :(return (-1, -1)) : :(return -1))))
+            $((withretcode && withval) ? :(return (-1, $interval_flt, $ivres)) : ((withretcode && !withval) ? :(return (-1, $interval_flt)) : ((!withretcode && withval) ? :(return (-1, $ivres)) : :(return $ivres))))
         elseif $ivres > 0
             #$(withretcode ? :(return (1, $interval_flt)) : :(return 1))
-            $((withretcode && withval) ? :(return (1, $interval_flt, 1)) : ((withretcode && !withval) ? :(return (1, $interval_flt)) : ((!withretcode && withval) ? :(return (1, 1)) : :(return 1))))
+            $((withretcode && withval) ? :(return (1, $interval_flt, $ivres)) : ((withretcode && !withval) ? :(return (1, $interval_flt)) : ((!withretcode && withval) ? :(return (1, $ivres)) : :(return $ivres))))
         elseif $ivres == 0
             #$(withretcode ? :(return (0, $interval_flt)) : :(return 0))
-            $((withretcode && withval) ? :(return (0, $interval_flt, 0)) : ((withretcode && !withval) ? :(return (0, $interval_flt)) : ((!withretcode && withval) ? :(return (0, 0)) : :(return 0))))
+            $((withretcode && withval) ? :(return (0, $interval_flt, $ivres)) : ((withretcode && !withval) ? :(return (0, $interval_flt)) : ((!withretcode && withval) ? :(return (0, $ivres)) : :(return $ivres))))
         end
     end
 
@@ -357,13 +357,13 @@ function naivefilter(f :: Formula  ; withretcode :: Bool = false, withval :: Boo
         $fpres = $(evalcode(f))
         if $fpres < 0
             #$(withretcode ? :(return (-1, $naive_flt)) : :(return -1))
-            $((withretcode && withval) ? :(return (-1, $naive_flt, -1)) : ((withretcode && !withval) ? :(return (-1, $naive_flt)) : ((!withretcode && withval) ? :(return (-1, -1)) : :(return -1))))
+            $((withretcode && withval) ? :(return (-1, $naive_flt, $fpres)) : ((withretcode && !withval) ? :(return (-1, $naive_flt)) : ((!withretcode && withval) ? :(return (-1, $fpres)) : :(return $fpres))))
         elseif $fpres > 0
             #$(withretcode ? :(return (1, $naive_flt)) : :(return 1))
-            $((withretcode && withval) ? :(return (1, $naive_flt, 1)) : ((withretcode && !withval) ? :(return (1, $naive_flt)) : ((!withretcode && withval) ? :(return (1, 1)) : :(return 1))))
+            $((withretcode && withval) ? :(return (1, $naive_flt, $fpres)) : ((withretcode && !withval) ? :(return (1, $naive_flt)) : ((!withretcode && withval) ? :(return (1, $fpres)) : :(return $fpres))))
         else
             #$(withretcode ? :(return (0, $naive_flt)) : :(return 0))
-            $((withretcode && withval) ? :(return (0, $naive_flt, 0)) : ((withretcode && !withval) ? :(return (0, $naive_flt)) : ((!withretcode && withval) ? :(return (0, 0)) : :(return 0))))
+            $((withretcode && withval) ? :(return (0, $naive_flt, $fpres)) : ((withretcode && !withval) ? :(return (0, $naive_flt)) : ((!withretcode && withval) ? :(return (0, $fpres)) : :(return $fpres))))
         end
     end
 end
