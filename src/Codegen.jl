@@ -174,7 +174,7 @@ function evalcode(f :: Formula, conv = nothing)
 end
 
 
-function fastfilter(f :: Formula ; withretcode :: Bool = false)
+function fastfilter(f :: Formula ; withretcode :: Bool = false, withval :: Bool = false)
     code = []
 
     @gensym res
@@ -254,7 +254,7 @@ function fastfilter(f :: Formula ; withretcode :: Bool = false)
                 # negative. But since we are in unsigned arithmetic, ε < 0 means
                 # actually that ε is big, so reslog > ε cannot hold.
 
-                $(withretcode ? :(return ($signres, $fastfp_flt)) : :(return $signres))
+                $((withretcode && withval) ? :(return ($signres, $fastfp_flt, $reslog)) : ((withretcode && !withval) ? :(return ($signres, $fastfp_flt)) : ((!withretcode && withval) ? :(return ($signres, $reslog)) : :(return $signres))))
             end
         end
         push!(code, filter)
@@ -273,7 +273,8 @@ function fastfilter(f :: Formula ; withretcode :: Bool = false)
                        for g in values(acc.groups))...)
                  )
 
-                $(withretcode ? :(return (0, $zerotest_flt)) : :(return 0))
+                #$(withretcode ? :(return (0, $zerotest_flt)) : :(return 0))
+                $((withretcode && withval) ? :(return (0, $zerotest_flt, 0)) : ((withretcode && !withval) ? :(return (0, $zerotest_flt)) : ((!withretcode && withval) ? :(return (0, 0)) : :(return 0))))
             end
         end
         push!(code, filter)
@@ -302,7 +303,8 @@ function fastfilter(f :: Formula ; withretcode :: Bool = false)
         filter = quote
             $ε = *($(groupabs...)) * $errabs
             if !issubnormal($ε) && $ε > 0 && isfinite($res) && abs($res) > $ε
-                $(withretcode ? :(return ($signres, $accuratefp_flt)) : :(return $signres))
+                #$(withretcode ? :(return ($signres, $accuratefp_flt)) : :(return $signres))
+                $((withretcode && withval) ? :(return ($signres, $accuratefp_flt, $res)) : ((withretcode && !withval) ? :(return ($signres, $accuratefp_flt)) : ((!withretcode && withval) ? :(return ($signres, $res)) : :(return $signres))))
             end
         end
         push!(code, filter)
@@ -315,7 +317,7 @@ function fastfilter(f :: Formula ; withretcode :: Bool = false)
 end
 
 
-function ivfilter(f :: Formula ; withretcode :: Bool = false)
+function ivfilter(f :: Formula ; withretcode :: Bool = false, withval :: Bool = false)
 
     @gensym ivres
     quote
@@ -323,38 +325,45 @@ function ivfilter(f :: Formula ; withretcode :: Bool = false)
         # the data is made of exactly representable integers.
         $ivres = $(evalcode(f,  s -> :( interval($s) )))
         if $ivres < 0
-            $(withretcode ? :(return (-1, $interval_flt)) : :(return -1))
+            #$(withretcode ? :(return (-1, $interval_flt)) : :(return -1))
+            $((withretcode && withval) ? :(return (-1, $interval_flt, -1)) : ((withretcode && !withval) ? :(return (-1, $interval_flt)) : ((!withretcode && withval) ? :(return (-1, -1)) : :(return -1))))
         elseif $ivres > 0
-            $(withretcode ? :(return (1, $interval_flt)) : :(return 1))
+            #$(withretcode ? :(return (1, $interval_flt)) : :(return 1))
+            $((withretcode && withval) ? :(return (1, $interval_flt, 1)) : ((withretcode && !withval) ? :(return (1, $interval_flt)) : ((!withretcode && withval) ? :(return (1, 1)) : :(return 1))))
         elseif $ivres == 0
-            $(withretcode ? :(return (0, $interval_flt)) : :(return 0))
+            #$(withretcode ? :(return (0, $interval_flt)) : :(return 0))
+            $((withretcode && withval) ? :(return (0, $interval_flt, 0)) : ((withretcode && !withval) ? :(return (0, $interval_flt)) : ((!withretcode && withval) ? :(return (0, 0)) : :(return 0))))
         end
     end
 
 end
 
-function exfilter(f :: Formula ; withretcode :: Bool = false)
+function exfilter(f :: Formula ; withretcode :: Bool = false, withval :: Bool = false)
 
     @gensym exrec
     quote
         # Exact arithmetic. Always conclusive.
         $exrec = $(evalcode(f, s -> :( Rational{BigInt}($s) )))
-        $(withretcode ? :(return (Int(sign($exrec)), $exact_flt)) : :(return Int(sign($exrec))))
+        #$(withretcode ? :(return (Int(sign($exrec)), $exact_flt)) : :(return Int(sign($exrec))))
+        $((withretcode && withval) ? :(return (Int(sign($exrec)), $exact_flt, $exrec)) : ((withretcode && !withval) ? :(return (Int(sign($exrec)), $exact_flt)) : ((!withretcode && withval) ? :(return (Int(sign($exrec)), $exrec)) : :(return Int(sign($exrec))))))
     end
 
 end
 
-function naivefilter(f :: Formula  ; withretcode :: Bool = false)
+function naivefilter(f :: Formula  ; withretcode :: Bool = false, withval :: Bool = false)
     @gensym fpres
     quote
         # Exact arithmetic. Always conclusive.
         $fpres = $(evalcode(f))
         if $fpres < 0
-            $(withretcode ? :(return (-1, $naive_flt)) : :(return -1))
+            #$(withretcode ? :(return (-1, $naive_flt)) : :(return -1))
+            $((withretcode && withval) ? :(return (-1, $naive_flt, -1)) : ((withretcode && !withval) ? :(return (-1, $naive_flt)) : ((!withretcode && withval) ? :(return (-1, -1)) : :(return -1))))
         elseif $fpres > 0
-            $(withretcode ? :(return (1, $naive_flt)) : :(return 1))
+            #$(withretcode ? :(return (1, $naive_flt)) : :(return 1))
+            $((withretcode && withval) ? :(return (1, $naive_flt, 1)) : ((withretcode && !withval) ? :(return (1, $naive_flt)) : ((!withretcode && withval) ? :(return (1, 1)) : :(return 1))))
         else
-            $(withretcode ? :(return (0, $naive_flt)) : :(return 0))
+            #$(withretcode ? :(return (0, $naive_flt)) : :(return 0))
+            $((withretcode && withval) ? :(return (0, $naive_flt, 0)) : ((withretcode && !withval) ? :(return (0, $naive_flt)) : ((!withretcode && withval) ? :(return (0, 0)) : :(return 0))))
         end
     end
 end
@@ -403,6 +412,7 @@ macro genpredicate(args...)
     naivef = esc(Symbol(base, "_naive"))
 
     debug = s -> esc(Symbol(s.args[1], "_dbg"))
+    val = s -> esc(Symbol(s.args[1], "_val"))
 
     nsig = (a for a in nargs)
     vars = (a.args[1] for a in nargs)
@@ -436,12 +446,28 @@ macro genpredicate(args...)
             $(naivefilter(formula, withretcode=true))
         end
 
+        function $(val(naivef))($(nsig...))
+            $(naivefilter(formula, withretcode=false, withval=true))
+        end
+
+        function $(debug(val(naivef)))($(nsig...))
+            $(naivefilter(formula, withretcode=true, withval=true))
+        end
+
         function $(referencef)($(nsig...))
             $(exfilter(formula))
         end
 
         function $(debug(referencef))($(nsig...))
             $(exfilter(formula, withretcode=true))
+        end
+
+        function $(val(referencef))($(nsig...))
+            $(exfilter(formula, withretcode=false, withval=true))
+        end
+
+        function $(debug(val(referencef)))($(nsig...))
+            $(exfilter(formula, withretcode=true, withval=true))
         end
 
         function $(slowf)($(nsig...))
@@ -454,6 +480,16 @@ macro genpredicate(args...)
             return $(debug(referencef))($(vars...))
         end
 
+        function $(val(slowf))($(nsig...))
+            $(ivfilter(formula, withretcode=false, withval=true))
+            return $(debug(referencef))($(vars...))
+        end
+
+        function $(debug(val(slowf)))($(nsig...))
+            $(ivfilter(formula, withretcode=true, withval=true))
+            return $(debug(referencef))($(vars...))
+        end
+
         Core.@__doc__(@inline function $(mainf)($(nsig...))
             $(fastfilter(formula))
             return $(slowf)($(vars...))
@@ -461,6 +497,16 @@ macro genpredicate(args...)
 
         function $(debug(mainf))($(nsig...))
             $(fastfilter(formula, withretcode=true))
+            return $(debug(slowf))($(vars...))
+        end
+
+        function $(val(mainf))($(nsig...))
+            $(fastfilter(formula, withretcode=false, withval=true))
+            return $(debug(slowf))($(vars...))
+        end
+
+        function $(debug(val(mainf)))($(nsig...))
+            $(fastfilter(formula, withretcode=true, withval=true))
             return $(debug(slowf))($(vars...))
         end
 
