@@ -10,4 +10,6 @@ makedocs(
 
 deploydocs(
     repo = "github.com/lairez/ExactPredicates.jl.git",
+    devbranch = "master",
+    versions = ["stable" => "v^"]
 )
