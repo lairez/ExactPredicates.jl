@@ -33,7 +33,7 @@ Robust means that the code:
 - in particular, no restriction on the coordinate range.
 
 
-#### Why robustness matter?
+#### Why robustness matters?
 
 When the input data is approximate it looks absurd to insist on exact
 computation. To determine if a point is inside or outside a circle, one may need
