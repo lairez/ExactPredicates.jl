@@ -73,7 +73,7 @@ The emphasis in the package is to make the quick path as fast as possible.
 #### The slow path
 
 If the error estimation fails to certify the floating point computation, the
-code falls back to interval arithmetic, using [IntervalArithmetic.jl](https://github.com/JuliaIntervals/IntervalArithmetic.jl). It will works especially well if the input points have small integer coordinates.
+code falls back to interval arithmetic, using [IntervalArithmetic.jl](https://github.com/JuliaIntervals/IntervalArithmetic.jl). It will work especially well if the input points have small integer coordinates.
 Expect a 50× slowdown.
 
 In this scenario, adaptive methods, like the one famously implemented by [Shewchuk](https://www.cs.cmu.edu/~quake/robust.html), may be more performant.
@@ -88,7 +88,7 @@ The computation will always succeed, but expect a 50-100× slowdown.
 
 ### Basic usage 
 
-The type for representing points is `NTuple{N, Float64}`, where `N` is 2 or 3. Very concretly, that is `Tuple{Float64,Float64}` or `Tuple{Float64,Float64,Float64}`.
+The type for representing points is `NTuple{N, Float64}`, where `N` is 2 or 3. Very concretely, that is `Tuple{Float64,Float64}` or `Tuple{Float64,Float64,Float64}`.
 
 ```julia
 p, q, r, a = (1.0, 3.0), (1.5, 10.0), (-87.0, 1e64), (1e-100, 3.0)
@@ -140,7 +140,7 @@ The code generator turns any piece of code that evaluates a homogeneous polynomi
 into a robust piece of code that evaluates the sign of the same polynomial.
 It only needs hint to group variables into homogeneous groups.
 
-For example the discriminant of a degree 2 polynomial ``a x^2 + bx + c`` is ``b^2 - 4ac``, which is a homogeneous polynomial in ``a``, ``b`` and ``c``.
+For example, the discriminant of a degree 2 polynomial ``a x^2 + bx + c`` is ``b^2 - 4ac``, which is a homogeneous polynomial in ``a``, ``b`` and ``c``.
 With ExactPredicates, you can write
 
 ```julia
