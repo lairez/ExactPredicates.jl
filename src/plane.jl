@@ -168,7 +168,7 @@ Note also that `orient(a, b, c) == parallelorder(a, b, a, c)`.
 """
     rotation(pts :: AbstractVector)
 
-Gives the number of rotation of the polygonal path defined by the elements of `pts`.
+Gives the [rotation number](https://en.wikipedia.org/wiki/Winding_number#Turning_number) of the polygonal path defined by the elements of `pts`.
 """
 function rotation(pts :: AbstractVector{T}) where T
     u = rand(SVector{2, Float64})
