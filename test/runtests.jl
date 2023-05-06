@@ -188,6 +188,8 @@ end
 
 
 @testset "rotation" begin
+    using Random
+
     Random.seed!(1);
     angles = 3*pi*2*rand(30)
     sort!(angles)
