@@ -188,6 +188,7 @@ end
 
 
 @testset "rotation" begin
+    Random.seed!(1);
     angles = 3*pi*2*rand(30)
     sort!(angles)
     pts = [exp(im*α) for α in angles]
