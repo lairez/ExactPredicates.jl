@@ -56,16 +56,6 @@ If two of the four arguments are equal, return 0.
 """ incircle(::NTuple{2, Float64}, ::NTuple{2, Float64}, ::NTuple{2, Float64}, ::NTuple{2, Float64})
 
 
-@genpredicate function incircle2(a :: 2, b :: 2, c :: 2, p :: 2)
-    a = a - p
-    b = b - p
-    c = c - p
-
-    group!(a..., b..., c...)
-    abs2(a)*ext(b, c) + abs2(b)*ext(c, a) + abs2(c)*ext(a, b)
-end
-
-
 
 @genpredicate function closest(p :: 2, q :: 2, a :: 2)
     qp = q - p
