@@ -3,7 +3,7 @@ uuid = "429591f6-91af-11e9-00e2-59fbe8cec110"
 authors = ["Pierre Lairez <pierre@lairez.fr>"]
 description = "Fast and exact geometrical predicates in the Euclidean plane"
 licence = "MIT"
-version = "2.2.4"
+version = "2.2.5"
 
 [deps]
 IntervalArithmetic = "d1acc4aa-44c8-5952-acd4-ba5d80a2a253"
