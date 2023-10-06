@@ -85,7 +85,7 @@ The computation will always succeed, but expect a 50-100× slowdown.
 
 ### Basic usage 
 
-The type for representing points is `NTuple{N, Float64}`, where `N` is 2 or 3. Very concretly, that is `Tuple{Float64,Float64}` or `Tuple{Float64,Float64,Float64}`.
+The type for representing points is `NTuple{N, Float64}`, where `N` is 2 or 3. Very concretely, that is `Tuple{Float64,Float64}` or `Tuple{Float64,Float64,Float64}`.
 
 ```julia
 p, q, r, a = (1.0, 3.0), (1.5, 10.0), (-87.0, 1e64), (1e-100, 3.0)

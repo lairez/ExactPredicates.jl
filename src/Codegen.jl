@@ -192,7 +192,7 @@ function fastfilter(f :: Formula ; withretcode :: Bool = false)
     # of the formula.
 
     # The format of acc.groups is Dict(g1=>[a,b,c,...], g2=>[d,e,f,...], ...),
-    # where a, b, c, ... are input gates (or difference or inpur gates, which
+    # where a, b, c, ... are input gates (or difference or input gates, which
     # are considered as new input gates). The formula is expected to be
     # multihomogeneous w.r.t. to each group. The degree of homogeneity w.r.t to
     # the group g is acc.deg[g]. Therefore, the appropriate scaling is the
@@ -204,7 +204,7 @@ function fastfilter(f :: Formula ; withretcode :: Bool = false)
     # But we can check quickly a sufficient condition just with integer
     # arithmetic on the exponents.
 
-    # There are two fundamental things to check: that no overflow occured with computing res
+    # There are two fundamental things to check: that no overflow occurred with computing res
     # and that no underflow occurs when computing acc.error*Π λ[g]^acc.deg[g].
 
     acc = accumulator(f)

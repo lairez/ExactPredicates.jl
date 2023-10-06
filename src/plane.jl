@@ -72,7 +72,7 @@ end
 
 * Return 1 if `a` is closer to `p` than to `q`.
 * Return –1 if `a` is closer to `q` than to `p`.
-* Return 0 is `a` is equaly close to both.
+* Return 0 is `a` is equally close to both.
 """ closest(::NTuple{2, Float64}, ::NTuple{2, Float64}, ::NTuple{2, Float64})
 
 
