@@ -322,9 +322,9 @@ function ivfilter(f :: Formula ; withretcode :: Bool = false)
         # We now resort to interval arithmetic It is an interesting filter when
         # the data is made of exactly representable integers.
         $ivres = $(evalcode(f,  s -> :( interval($s) )))
-        if $ivres < 0
+        if isstrictless($ivres, interval(0.0))
             $(withretcode ? :(return (-1, $interval_flt)) : :(return -1))
-        elseif $ivres > 0
+        elseif isstrictless(interval(0.0), $ivres)
             $(withretcode ? :(return (1, $interval_flt)) : :(return 1))
         elseif $ivres == 0
             $(withretcode ? :(return (0, $interval_flt)) : :(return 0))
