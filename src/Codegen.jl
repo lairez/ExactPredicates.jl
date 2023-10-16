@@ -89,6 +89,7 @@ end
 zero(::Type{Formula}) = convert(Formula, 0)
 
 promote_rule(::Type{T}, ::Type{Formula}) where {T <: Integer} = Formula
+promote_rule(::Type{Bool}, ::Type{Formula}) = Formula # method ambiguity
 
 
 function group!(args...)
@@ -361,7 +362,7 @@ end
 
 """
 
-Generate sign predicate for a function that compute a polynomial in the
+Generate sign predicate for a function that computes a polynomial in the
 coordinates of the arguments.
 
 """

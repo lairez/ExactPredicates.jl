@@ -222,3 +222,9 @@ end
     @test lengthcompare(a, b, c, d) == -1
     @test lengthcompare(c, (c[1]+d[1], c[2]+d[2]), a, b) == -1
 end
+
+@testset "Aqua" begin
+    using Aqua
+    Aqua.test_all(ExactPredicates; ambiguities=false, project_extras=false)
+    Aqua.test_ambiguities(ExactPredicates) # don't pick up Base and Core
+end
