@@ -12,9 +12,19 @@ export coord, @genpredicate
 
 @enum FilterEnum fastfp_flt zerotest_flt accuratefp_flt interval_flt exact_flt naive_flt nothing_flt
 
+struct InvalidPrecisionError{T} <: Exception
+    x::T
+end
+function Base.showerror(io :: IO, e :: InvalidPrecisionError{T}) where {T}
+    print(io, "Invalid precision used for input ", e.x, "::$T. You can only use Float64 numbers in predicates.")
+end
 
-coord(x) = Tuple(x)
-coord(x :: Complex) = reim(x)
+@inline _coord(x :: NTuple{N,Float64}) where {N} = x
+_coord(x :: Tuple) = throw(InvalidPrecisionError(x))
+_coord(x) = coord(x) 
+
+@inline coord(x) = _coord(Tuple(x))
+@inline coord(x :: Complex) = _coord(reim(x))
 
 function adddict(a, b)
     d = copy(a)
@@ -391,7 +401,7 @@ macro genpredicate(args...)
             v, dim = a.args
             push!(input, SVector((Formula(:($v[$i])) for i in 1:dim)...))
             push!(nargs, :($v :: NTuple{$dim, Float64}))
-            push!(tupleconv, :($v = coord($v)))
+            push!(tupleconv, :($v = _coord($v)))
         else
             throw(DomainError("Unknown argument $a"))
         end

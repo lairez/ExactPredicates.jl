@@ -228,3 +228,36 @@ end
     Aqua.test_all(ExactPredicates; ambiguities=false, project_extras=false)
     Aqua.test_ambiguities(ExactPredicates) # don't pick up Base and Core
 end
+
+@testset "Throwing for invalid precision" begin
+    msg = ((x::X, y::Y) where {X, Y}) -> "Invalid precision used for input $((x, y))::Tuple{$X, $Y}. You can only use Float64 numbers in predicates."
+    @test_throws Codegen.InvalidPrecisionError coord((1.0, 2.0f0))
+    @test_throws msg(1.0, 2.0f0) coord((1.0, 2.0f0))
+    @test_throws msg(1, Int32(2)) coord((1, Int32(2)))
+    @test_throws msg(5.0f0, 7.0f0) coord((5.0f0, 7.0f0))
+    @test_throws msg(5.0f0, 7.0) coord((5.0f0, 7.0))
+    @test_throws msg(1, 5) orient((1, 5), (1, 9), (1, 7))
+    @test_throws msg(Float16(2.0), Float16(5.0)) coord((Float16(2.0), Float16(5.0)))
+    p, q, r = (1.0, 5.0), (1.0, 9.0), (1.0f0, 7.0f0)
+    @test_throws msg(1.0f0, 7.0f0) orient(p, q, r)
+    s = (9.0f0, 17.0f0)
+    @test_throws msg(1.0f0, 7.0f0) incircle(p, q, r, s)
+    p1, q1, r1, s1, a1 = [rand(SVector{2, Float32}) for _ in 1:5]
+    pt2 = Point(1.0f0, 2.0f0)
+    q2 = Point(5.7f0, 2.5f0)
+    r2 = Point(1.9f0, 17.3f0)
+    s2 = Point(9.0f0, 17.0f0)
+    a2 = Point(1.0f0, 2.32f0)
+    for (p,q,r,s,a) in ((p1,q1,r1,s1,a1),(pt2,q2,r2,s2,a2))
+        _p = p isa Point ? coord(p) : p
+        @test_throws msg(_p...) orient(p, q, r)
+        @test_throws msg(_p...) meet(p, q, r, s)
+        @test_throws msg(_p...) closest(p, q, r)
+        @test_throws msg(_p...) insphere(p, q, r, s, a)
+        @test_throws msg(_p...) rotation([p,q,r])
+        @test_throws msg(_p...) lengthcompare(p, q, r, s)
+        @test_throws msg(_p...) intersectorder(p, q, r, s, a, s)
+        @test_throws msg(_p...) parallelorder(p, q, r, s)
+        @test_throws msg(_p...) orient(p, q, r, s)
+    end
+end
