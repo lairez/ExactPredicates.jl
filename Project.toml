@@ -11,6 +11,6 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 StaticArraysCore = "1e83bf80-4336-4d27-bf5d-d5a4f845583c"
 
 [compat]
-IntervalArithmetic = "^0.21"
+IntervalArithmetic = "^0.21, 0.22"
 StaticArraysCore = "^1.4"
 julia = "^1.1"
