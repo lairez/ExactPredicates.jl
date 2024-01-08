@@ -8,9 +8,9 @@ version = "2.2.6"
 [deps]
 IntervalArithmetic = "d1acc4aa-44c8-5952-acd4-ba5d80a2a253"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
-StaticArraysCore = "1e83bf80-4336-4d27-bf5d-d5a4f845583c"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
 IntervalArithmetic = "^0.21, 0.22"
-StaticArraysCore = "^1.4"
+StaticArrays = "^1.9"
 julia = "^1.1"

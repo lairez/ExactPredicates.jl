@@ -7,7 +7,7 @@ export incircle, orient, closest, insphere, meet, sameside, rotation, parallelor
 
 include("Codegen.jl")
 
-using StaticArraysCore
+using StaticArrays
 using IntervalArithmetic
 
 using .Codegen: group!, @genpredicate

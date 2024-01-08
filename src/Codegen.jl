@@ -4,7 +4,7 @@
 module Codegen
 
 using IntervalArithmetic
-using StaticArraysCore
+using StaticArrays
 
 import Base: +, *, -, one, convert, promote_rule
 

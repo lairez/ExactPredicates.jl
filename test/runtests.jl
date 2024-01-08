@@ -1,6 +1,6 @@
 using Test
 
-using StaticArraysCore
+using StaticArrays
 using ExactPredicates
 using ExactPredicates.Codegen
 import Base: complex
