@@ -337,7 +337,7 @@ function ivfilter(f :: Formula ; withretcode :: Bool = false)
             $(withretcode ? :(return (-1, $interval_flt)) : :(return -1))
         elseif isstrictless(interval(0.0), $ivres)
             $(withretcode ? :(return (1, $interval_flt)) : :(return 1))
-        elseif $ivres == 0
+        elseif mag($ivres) == 0
             $(withretcode ? :(return (0, $interval_flt)) : :(return 0))
         end
     end
